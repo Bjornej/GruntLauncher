@@ -1,0 +1,24 @@
+var names = [];
+var module = {};
+var grunt = {};
+var require = function(){
+	return { 
+		filterDev: function(){
+			return {
+				forEach: function(){}
+			}; 
+		} 
+	};
+};
+grunt.initConfig=function(param){
+	for(var prop in param){
+		if(param.hasOwnProperty(prop)){
+			names.push(prop);
+		}
+	}
+};
+grunt.file = { readJSON: function(){return {};}}
+grunt.registerTask= function(name){names.push(name);};
+grunt.loadNpmTasks = function(){};
+grunt.template = {today:function(){}};
+grunt.renameTask = function(a,b){ names.push(b);}
