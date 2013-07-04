@@ -203,6 +203,8 @@ namespace Bjornej.GruntLauncher
                 Output("Executing " + " grunt " + task + " \r\n\r\n");
                 procStartInfo.FileName = "cmd";
                 procStartInfo.Arguments = " /c \"grunt --no-color " + task + "\"";
+                procStartInfo.RedirectStandardOutput = true;
+                procStartInfo.RedirectStandardError = true;
                 proc.OutputDataReceived += (object sendingProcess, DataReceivedEventArgs outLine)
                      => Output(outLine.Data + "\r\n");
                 proc.Start();
