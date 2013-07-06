@@ -49,6 +49,8 @@ namespace Bjornej.GruntLauncher
         /// </summary>
         private static OleMenuCommand Base;
 
+        private static System.Diagnostics.Process process;
+
         private string lastFile;
 
         /// <summary>
@@ -207,8 +209,12 @@ namespace Bjornej.GruntLauncher
                 procStartInfo.RedirectStandardError = true;
                 proc.OutputDataReceived += (object sendingProcess, DataReceivedEventArgs outLine)
                      => Output(outLine.Data + "\r\n");
+                proc.ErrorDataReceived += (object sendingProcess, DataReceivedEventArgs outLine)
+                     => Output(outLine.Data + "\r\n");
                 proc.Start();
                 proc.BeginOutputReadLine();
+                proc.BeginErrorReadLine();
+                process = proc;
             }
             catch (Exception ex)
             {
