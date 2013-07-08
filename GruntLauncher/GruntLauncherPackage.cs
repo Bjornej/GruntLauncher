@@ -195,18 +195,26 @@ namespace Bjornej.GruntLauncher
             {
 
                 //launches the grunt process and redirects the output to the output window
-                System.Diagnostics.ProcessStartInfo procStartInfo = new ProcessStartInfo();
-                procStartInfo.RedirectStandardOutput = true;
-                procStartInfo.UseShellExecute = false;
-                procStartInfo.CreateNoWindow = true;
+                System.Diagnostics.ProcessStartInfo procStartInfo = new ProcessStartInfo()
+                {
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WorkingDirectory = Path.GetDirectoryName(GetSourceFilePath()),
+                    FileName = "cmd"
+                };
+
+                ///Horrendous hack due to a bug in node in windows which doesn't redirect correctly error output
+                /// https://github.com/gruntjs/grunt/issues/510
+                procStartInfo.Arguments = " /c \"grunt --no-color " + task + "  2>&1 > grunt.tmp & type grunt.tmp & del grunt.tmp \" ";
+
+
                 System.Diagnostics.Process proc = new System.Diagnostics.Process();
                 proc.StartInfo = procStartInfo;
-                procStartInfo.WorkingDirectory = Path.GetDirectoryName(GetSourceFilePath());
+
                 Output("Executing " + " grunt " + task + " \r\n\r\n");
-                procStartInfo.FileName = "cmd";
-                procStartInfo.Arguments = " /c \"grunt --no-color " + task + "\"";
-                procStartInfo.RedirectStandardOutput = true;
-                procStartInfo.RedirectStandardError = true;
+
                 proc.OutputDataReceived += (object sendingProcess, DataReceivedEventArgs outLine)
                      => Output(outLine.Data + "\r\n");
                 proc.ErrorDataReceived += (object sendingProcess, DataReceivedEventArgs outLine)
@@ -215,10 +223,11 @@ namespace Bjornej.GruntLauncher
                 proc.BeginOutputReadLine();
                 proc.BeginErrorReadLine();
                 process = proc;
+                proc.WaitForExit();
             }
             catch (Exception ex)
             {
- 
+
                 Output(ex.Message);
             }
         }
