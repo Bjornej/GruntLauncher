@@ -144,7 +144,7 @@ namespace Bjornej.GruntLauncher
 
             var myCommand = sender as OleMenuCommand;
             //if the currently selected file is a Gruntfile set the command to visible
-            myCommand.Visible = path.IndexOf("Gruntfile.js") != -1;
+            myCommand.Visible = (path.ToLower()).IndexOf("gruntfile.js") != -1;
             OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
 
 
