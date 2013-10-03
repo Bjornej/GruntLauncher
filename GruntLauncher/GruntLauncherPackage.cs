@@ -116,7 +116,15 @@ namespace Bjornej.GruntLauncher
                 foreach (UIHierarchyItem selItem in selectedItems)
                 {
                     ProjectItem prjItem = selItem.Object as ProjectItem;
-                    string filePath = prjItem.Properties.Item("FullPath").Value.ToString();
+                    string filePath;
+                    if (prjItem.Properties != null)
+                    {
+                        filePath = prjItem.Properties.Item("FullPath").Value.ToString();
+                    }
+                    else
+                    {
+                        filePath = prjItem.FileNames[1];
+                    }
                     return filePath;
                 }
             }
