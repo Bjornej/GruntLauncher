@@ -215,7 +215,7 @@ namespace Bjornej.GruntLauncher
 
                 ///Horrendous hack due to a bug in node in windows which doesn't redirect correctly error output
                 /// https://github.com/gruntjs/grunt/issues/510
-                procStartInfo.Arguments = " /c \"grunt --no-color " + task + "  2>&1 > grunt.tmp & type grunt.tmp & del grunt.tmp \" ";
+                procStartInfo.Arguments = " /c \"grunt --no-color " + task + "  2>&1 \" ";
 
 
                 System.Diagnostics.Process proc = new System.Diagnostics.Process();
@@ -231,7 +231,6 @@ namespace Bjornej.GruntLauncher
                 proc.BeginOutputReadLine();
                 proc.BeginErrorReadLine();
                 process = proc;
-                proc.WaitForExit();
             }
             catch (Exception ex)
             {
