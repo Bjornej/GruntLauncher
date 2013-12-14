@@ -49,7 +49,9 @@ namespace Bjornej.GruntLauncher
         /// </summary>
         private static OleMenuCommand Base;
 
-        private static System.Diagnostics.Process process;
+        private static IVsOutputWindowPane outputWindowPane;
+
+        private static Dictionary<OleMenuCommand, System.Diagnostics.Process> processes;
 
         private string lastFile;
 
@@ -62,6 +64,18 @@ namespace Bjornej.GruntLauncher
         /// </summary>
         public GruntLauncherPackage()
         {
+            var outputWindow = Package.GetGlobalService(typeof(SVsOutputWindow)) as IVsOutputWindow;
+            var dte = (DTE)GetGlobalService(typeof(DTE));
+            Window window = (Window)dte.Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
+            window.Visible = true;
+
+
+            // Ensure that the desired pane is visible
+            var paneGuid = Microsoft.VisualStudio.VSConstants.OutputWindowPaneGuid.GeneralPane_guid;
+
+            outputWindow.CreatePane(paneGuid, "Grunt execution", 1, 0);
+            outputWindow.GetPane(paneGuid, out outputWindowPane);
+            processes = new Dictionary<OleMenuCommand, System.Diagnostics.Process>();
         }
 
 
@@ -199,38 +213,60 @@ namespace Bjornej.GruntLauncher
             var text = cmd.Text;
             var task = text.Substring(text.IndexOf(':') + 1).Trim();
 
+            if (cmd.Checked)
+            {
+                System.Diagnostics.Process pro;
+                processes.TryGetValue(cmd, out pro);
+                if (pro != null)
+                {
+                    Output("Stopping process " + cmd.Text);
+                    pro.Kill();
+                    processes.Remove(cmd);
+                }
+            }
+
             try
             {
-
-                //launches the grunt process and redirects the output to the output window
-                System.Diagnostics.ProcessStartInfo procStartInfo = new ProcessStartInfo()
+                if (!cmd.Checked)
                 {
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    WorkingDirectory = Path.GetDirectoryName(GetSourceFilePath()),
-                    FileName = "cmd"
-                };
+                    //launches the grunt process and redirects the output to the output window
+                    System.Diagnostics.ProcessStartInfo procStartInfo = new ProcessStartInfo()
+                    {
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WorkingDirectory = Path.GetDirectoryName(GetSourceFilePath()),
+                        FileName = "cmd"
+                    };
 
-                ///Horrendous hack due to a bug in node in windows which doesn't redirect correctly error output
-                /// https://github.com/gruntjs/grunt/issues/510
-                procStartInfo.Arguments = " /c \"grunt --no-color " + task + "  2>&1 \" ";
+                    procStartInfo.Arguments = " /c \"grunt --no-color " + task + "  2>&1 \" ";
 
 
-                System.Diagnostics.Process proc = new System.Diagnostics.Process();
-                proc.StartInfo = procStartInfo;
+                    System.Diagnostics.Process proc = new System.Diagnostics.Process();
+                    proc.StartInfo = procStartInfo;
+                    proc.EnableRaisingEvents = true;
+                    Output("Executing " + " grunt " + task + " \r\n\r\n", true);
 
-                Output("Executing " + " grunt " + task + " \r\n\r\n");
-
-                proc.OutputDataReceived += (object sendingProcess, DataReceivedEventArgs outLine)
-                     => Output(outLine.Data + "\r\n");
-                proc.ErrorDataReceived += (object sendingProcess, DataReceivedEventArgs outLine)
-                     => Output(outLine.Data + "\r\n");
-                proc.Start();
-                proc.BeginOutputReadLine();
-                proc.BeginErrorReadLine();
-                process = proc;
+                    proc.OutputDataReceived += (object sendingProcess, DataReceivedEventArgs outLine)
+                         => Output(outLine.Data + "\r\n");
+                    proc.ErrorDataReceived += (object sendingProcess, DataReceivedEventArgs outLine)
+                         => Output(outLine.Data + "\r\n");
+                    proc.Exited += (x, y) =>
+                    {
+                        processes.Remove(cmd);
+                        cmd.Checked = false;
+                    };
+                    proc.Start();
+                    proc.BeginOutputReadLine();
+                    proc.BeginErrorReadLine();
+                    cmd.Checked = true;
+                    processes.Add(cmd, proc);
+                }
+                else
+                {
+                    cmd.Checked = false;
+                }
             }
             catch (Exception ex)
             {
@@ -239,29 +275,17 @@ namespace Bjornej.GruntLauncher
             }
         }
 
+
+
         /// <summary>
         /// Prints a string to the Output window in a custom pane
         /// </summary>
         /// <param name="msg">The string to print</param>
-        public static void Output(string msg)
+        public static void Output(string msg, bool focus = false)
         {
-            // Get the output window
-            var outputWindow = Package.GetGlobalService(typeof(SVsOutputWindow)) as IVsOutputWindow;
-            var dte = (DTE)GetGlobalService(typeof(DTE));
-            Window window = (Window)dte.Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
-            window.Visible = true;
-
-
-            // Ensure that the desired pane is visible
-            var paneGuid = Microsoft.VisualStudio.VSConstants.OutputWindowPaneGuid.GeneralPane_guid;
-            IVsOutputWindowPane pane;
-            outputWindow.CreatePane(paneGuid, "Grunt execution", 1, 0);
-            outputWindow.GetPane(paneGuid, out pane);
-            pane.Activate();
-
 
             // Output the message
-            pane.OutputString(msg);
+            outputWindowPane.OutputString(msg);
         }
 
     }
