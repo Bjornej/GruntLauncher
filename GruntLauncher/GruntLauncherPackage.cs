@@ -220,7 +220,7 @@ namespace Bjornej.GruntLauncher
                 if (pro != null)
                 {
                     Output("Stopping process " + cmd.Text);
-                    ProcessUtilities.KillProcessTree(pro);
+                    ProcessUtilities.KillProcessAndChildren(pro.Id);
                     processes.Remove(cmd);
                 }
             }
