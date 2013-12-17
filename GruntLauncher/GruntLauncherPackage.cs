@@ -220,7 +220,7 @@ namespace Bjornej.GruntLauncher
                 if (pro != null)
                 {
                     Output("Stopping process " + cmd.Text);
-                    pro.Kill();
+                    ProcessUtilities.KillProcessTree(pro);
                     processes.Remove(cmd);
                 }
             }
@@ -283,7 +283,14 @@ namespace Bjornej.GruntLauncher
         /// <param name="msg">The string to print</param>
         public static void Output(string msg, bool focus = false)
         {
-
+            if (focus) {
+                var outputWindow = Package.GetGlobalService(typeof(SVsOutputWindow)) as IVsOutputWindow;
+                var dte = (DTE)GetGlobalService(typeof(DTE));
+                Window window = (Window)dte.Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
+                window.Visible = true;
+                window.Activate();
+                outputWindowPane.Activate();
+            }
             // Output the message
             outputWindowPane.OutputString(msg);
         }
