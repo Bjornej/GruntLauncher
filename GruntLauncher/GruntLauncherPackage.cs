@@ -75,7 +75,7 @@
         /// <param name="focus">Decides if the output pane should be focused</param>
         public static void Output(string msg, bool focus = false)
         {
-            if (focus) 
+            if (focus)
             {
                 var outputWindow = Package.GetGlobalService(typeof(SVsOutputWindow)) as IVsOutputWindow;
                 var dte = (DTE)GetGlobalService(typeof(DTE));
@@ -117,6 +117,41 @@
         #endregion
 
         /// <summary>
+        ///     Determines if the solution explorer context menu has been opened on a new file since
+        ///     last time
+        /// </summary>
+        /// <returns>Boolean that indicates if a new file was clicked</returns>
+        private bool IsNewFile()
+        {
+            // gets the full path of the clicked file
+            var path = SolutionHelpers.GetSourceFilePath();
+
+            // optimization to avoid parsing the file again if the clicked file has not changed since last time
+            if (path == this.lastFile)
+            {
+                return false;
+            }
+            else
+            {
+                this.lastFile = path;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        ///     Determines if the current file is a gruntfile
+        /// </summary>
+        /// <returns>Boolean that indicates if the clicked file was a gruntfile</returns>
+        private bool IsGruntFile()
+        {
+            // gets the full path of the clicked file
+            var path = SolutionHelpers.GetSourceFilePath();
+
+            return path.ToLower().IndexOf("gruntfile.js") != -1;
+        }
+
+        /// <summary>
         /// Sets the visibility of the command and creates the dynamic list of commands
         /// </summary>
         /// <param name="sender">Sender of the event</param>
@@ -126,20 +161,15 @@
             // gets the full path of the clicked file
             var path = SolutionHelpers.GetSourceFilePath();
 
-            // optimization to avoid parsing the file again if the clicked file has not changed since last time
-            if (path == this.lastFile)
+            if (!this.IsNewFile())
             {
                 return;
-            }
-            else
-            {
-                this.lastFile = path;
             }
 
             var myCommand = sender as OleMenuCommand;
 
             // if the currently selected file is a Gruntfile set the command to visible
-            myCommand.Visible = path.ToLower().IndexOf("gruntfile.js") != -1;
+            myCommand.Visible = this.IsGruntFile();
             OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
 
             // delete the old command list
@@ -213,29 +243,33 @@
                         UseShellExecute = false,
                         CreateNoWindow = true,
                         WorkingDirectory = Path.GetDirectoryName(SolutionHelpers.GetSourceFilePath()),
-                        FileName = "cmd"
+                        FileName = "cmd",
+                        Arguments = " /c \"grunt --no-color " + task + "  2>&1 \" "
                     };
 
-                    procStartInfo.Arguments = " /c \"grunt --no-color " + task + "  2>&1 \" ";
+                    System.Diagnostics.Process proc = new System.Diagnostics.Process()
+                    {
+                        StartInfo = procStartInfo,
+                        EnableRaisingEvents = true
+                    };
 
-                    System.Diagnostics.Process proc = new System.Diagnostics.Process();
-                    proc.StartInfo = procStartInfo;
-                    proc.EnableRaisingEvents = true;
                     Output("Executing " + " grunt " + task + " \r\n\r\n", true);
 
-                    proc.OutputDataReceived += (object sendingProcess, DataReceivedEventArgs outLine)
-                         => Output(outLine.Data + "\r\n");
-                    proc.ErrorDataReceived += (object sendingProcess, DataReceivedEventArgs outLine)
-                         => Output(outLine.Data + "\r\n");
+                    proc.OutputDataReceived += (object sendingProcess, DataReceivedEventArgs outLine) => Output(outLine.Data + "\r\n");
+                    proc.ErrorDataReceived += (object sendingProcess, DataReceivedEventArgs outLine) => Output(outLine.Data + "\r\n");
                     proc.Exited += (x, y) =>
                     {
                         processes.Remove(cmd);
                         cmd.Checked = false;
                     };
+
                     proc.Start();
+
                     proc.BeginOutputReadLine();
                     proc.BeginErrorReadLine();
+
                     cmd.Checked = true;
+
                     processes.Add(cmd, proc);
                 }
                 else
