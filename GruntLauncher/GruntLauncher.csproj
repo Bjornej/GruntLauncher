@@ -128,8 +128,9 @@
   <ItemGroup>
     <Compile Include="GruntParser.cs" />
     <Compile Include="Guids.cs" />
+    <Compile Include="Helpers\OutputHelpers.cs" />
     <Compile Include="Helpers\SolutionHelpers.cs" />
-    <Compile Include="ProcessUtilities.cs" />
+    <Compile Include="Helpers\ProcessHelpers.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>

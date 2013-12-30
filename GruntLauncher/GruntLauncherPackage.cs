@@ -7,9 +7,7 @@
     using System.IO;
     using System.Runtime.InteropServices;
     using Bjornej.GruntLauncher.Helpers;
-    using EnvDTE;
     using Microsoft.VisualStudio.Shell;
-    using Microsoft.VisualStudio.Shell.Interop;
 
     /// <summary>
     ///     Main class that implements the gruntLauncher packages
@@ -32,11 +30,6 @@
         private static OleMenuCommand baseCommand;
 
         /// <summary>
-        ///     Window pane used to show grunt output
-        /// </summary>
-        private static IVsOutputWindowPane outputWindowPane;
-
-        /// <summary>
         ///     Dictionary of currently running processes
         /// </summary>
         private static Dictionary<OleMenuCommand, System.Diagnostics.Process> processes;
@@ -55,38 +48,7 @@
         /// </summary>
         public GruntLauncherPackage()
         {
-            var outputWindow = Package.GetGlobalService(typeof(SVsOutputWindow)) as IVsOutputWindow;
-            var dte = (DTE)GetGlobalService(typeof(DTE));
-            Window window = (Window)dte.Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
-            window.Visible = true;
-
-            // Ensure that the desired pane is visible
-            var paneGuid = Microsoft.VisualStudio.VSConstants.OutputWindowPaneGuid.GeneralPane_guid;
-
-            outputWindow.CreatePane(paneGuid, "Grunt execution", 1, 0);
-            outputWindow.GetPane(paneGuid, out outputWindowPane);
             processes = new Dictionary<OleMenuCommand, System.Diagnostics.Process>();
-        }
-
-        /// <summary>
-        ///     Prints a string to the Output window in a custom pane
-        /// </summary>
-        /// <param name="msg">The string to print</param>
-        /// <param name="focus">Decides if the output pane should be focused</param>
-        public static void Output(string msg, bool focus = false)
-        {
-            if (focus)
-            {
-                var outputWindow = Package.GetGlobalService(typeof(SVsOutputWindow)) as IVsOutputWindow;
-                var dte = (DTE)GetGlobalService(typeof(DTE));
-                Window window = (Window)dte.Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
-                window.Visible = true;
-                window.Activate();
-                outputWindowPane.Activate();
-            }
-
-            // Output the message
-            outputWindowPane.OutputString(msg);
         }
 
         /////////////////////////////////////////////////////////////////////////////
@@ -219,14 +181,16 @@
             var text = cmd.Text;
             var task = text.Substring(text.IndexOf(':') + 1).Trim();
 
+            // if the command is checked it means that there is a running grunt task associated
+            // so we kill it
             if (cmd.Checked)
             {
                 System.Diagnostics.Process pro;
                 processes.TryGetValue(cmd, out pro);
                 if (pro != null)
                 {
-                    Output("Stopping process " + cmd.Text);
-                    ProcessUtilities.KillProcessAndChildren(pro.Id);
+                    OutputHelpers.Output("Stopping process " + cmd.Text);
+                    ProcessHelpers.KillProcessAndChildren(pro.Id);
                     processes.Remove(cmd);
                 }
             }
@@ -253,10 +217,10 @@
                         EnableRaisingEvents = true
                     };
 
-                    Output("Executing " + " grunt " + task + " \r\n\r\n", true);
+                    OutputHelpers.Output("Executing " + " grunt " + task + " \r\n\r\n", true);
 
-                    proc.OutputDataReceived += (object sendingProcess, DataReceivedEventArgs outLine) => Output(outLine.Data + "\r\n");
-                    proc.ErrorDataReceived += (object sendingProcess, DataReceivedEventArgs outLine) => Output(outLine.Data + "\r\n");
+                    proc.OutputDataReceived += (object sendingProcess, DataReceivedEventArgs outLine) => OutputHelpers.Output(outLine.Data + "\r\n");
+                    proc.ErrorDataReceived += (object sendingProcess, DataReceivedEventArgs outLine) => OutputHelpers.Output(outLine.Data + "\r\n");
                     proc.Exited += (x, y) =>
                     {
                         processes.Remove(cmd);
@@ -279,7 +243,7 @@
             }
             catch (Exception ex)
             {
-                Output(ex.Message);
+                OutputHelpers.Output(ex.Message);
             }
         }
     }

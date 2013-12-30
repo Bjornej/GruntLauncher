@@ -7,7 +7,7 @@
     /// <summary>
     ///     Utility methods to manage the running processes
     /// </summary>
-    public static class ProcessUtilities
+    public static class ProcessHelpers
     {
         /// <summary>
         ///     Kill a process, and all of its children.
