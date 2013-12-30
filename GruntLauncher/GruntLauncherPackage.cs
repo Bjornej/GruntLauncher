@@ -6,6 +6,7 @@
     using System.Diagnostics;
     using System.IO;
     using System.Runtime.InteropServices;
+    using Bjornej.GruntLauncher.Helpers;
     using EnvDTE;
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
@@ -116,47 +117,6 @@
         #endregion
 
         /// <summary>
-        /// Gets the extensibility object
-        /// </summary>
-        /// <returns>The estenzibility object</returns>
-        private static EnvDTE80.DTE2 GetDTE2()
-        {
-            return GetGlobalService(typeof(DTE)) as EnvDTE80.DTE2;
-        }
-
-        /// <summary>
-        /// Get the full path of the file clicked upon when opening the contextual menu 
-        /// </summary>
-        /// <returns>The full path of the current file</returns>
-        private string GetSourceFilePath()
-        {
-            EnvDTE80.DTE2 applicationObject = GetDTE2();
-            UIHierarchy uih = applicationObject.ToolWindows.SolutionExplorer;
-            Array selectedItems = (Array)uih.SelectedItems;
-
-            if (null != selectedItems)
-            {
-                foreach (UIHierarchyItem selItem in selectedItems)
-                {
-                    ProjectItem prjItem = selItem.Object as ProjectItem;
-                    string filePath;
-                    if (prjItem.Properties != null)
-                    {
-                        filePath = prjItem.Properties.Item("FullPath").Value.ToString();
-                    }
-                    else
-                    {
-                        filePath = prjItem.FileNames[1];
-                    }
-
-                    return filePath;
-                }
-            }
-
-            return string.Empty;
-        }
-
-        /// <summary>
         /// Sets the visibility of the command and creates the dynamic list of commands
         /// </summary>
         /// <param name="sender">Sender of the event</param>
@@ -164,7 +124,7 @@
         private void SetVisibility(object sender, EventArgs e)
         {
             // gets the full path of the clicked file
-            var path = this.GetSourceFilePath();
+            var path = SolutionHelpers.GetSourceFilePath();
 
             // optimization to avoid parsing the file again if the clicked file has not changed since last time
             if (path == this.lastFile)
@@ -252,7 +212,7 @@
                         RedirectStandardError = true,
                         UseShellExecute = false,
                         CreateNoWindow = true,
-                        WorkingDirectory = Path.GetDirectoryName(this.GetSourceFilePath()),
+                        WorkingDirectory = Path.GetDirectoryName(SolutionHelpers.GetSourceFilePath()),
                         FileName = "cmd"
                     };
 
