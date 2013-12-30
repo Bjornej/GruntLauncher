@@ -1,16 +1,18 @@
-﻿using System;
-using System.Diagnostics;
-using System.Management;
-
-namespace Bjornej.GruntLauncher
+﻿namespace Bjornej.GruntLauncher
 {
+    using System;
+    using System.Diagnostics;
+    using System.Management;
+
+    /// <summary>
+    ///     Utility methods to manage the running processes
+    /// </summary>
     public static class ProcessUtilities
     {
-
         /// <summary>
-        /// Kill a process, and all of its children.
+        ///     Kill a process, and all of its children.
         /// </summary>
-        /// <param name="pid">Process ID.</param>
+        /// <param name="pid">Process ID</param>
         public static void KillProcessAndChildren(int pid)
         {
             ManagementObjectSearcher searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
@@ -19,6 +21,7 @@ namespace Bjornej.GruntLauncher
             {
                 KillProcessAndChildren(Convert.ToInt32(mo["ProcessID"]));
             }
+
             try
             {
                 Process proc = Process.GetProcessById(pid);

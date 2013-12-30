@@ -1,13 +1,19 @@
-﻿// PkgCmdID.cs
-// MUST match PkgCmdID.h
-using System;
-
-namespace Bjornej.GruntLauncher
+﻿namespace Bjornej.GruntLauncher
 {
-    static class PkgCmdIDList
+    using System;
+
+    /// <summary>
+    ///     List of Command IDs
+    /// </summary>
+    public static class PkgCmdIDList
     {
-        public const uint cmdidGruntLauncher =        0x100;
+        #region Visual Studio generated code
 
+        /// <summary>
+        ///     Command id 
+        /// </summary>
+        public const uint cmdidGruntLauncher = 0x100;
 
-    };
+        #endregion
+    }
 }

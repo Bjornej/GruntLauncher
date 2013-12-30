@@ -1,13 +1,9 @@
-﻿using Jurassic;
-using Jurassic.Library;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Bjornej.GruntLauncher
+﻿namespace Bjornej.GruntLauncher
 {
+    using System;
+    using System.Collections.Generic;
+    using Jurassic;
+    using Jurassic.Library;
 
     /// <summary>
     /// Parses a Gruntfile to extract all the contained tasks by executing it and reading them trough a javascript hack. 
@@ -15,7 +11,6 @@ namespace Bjornej.GruntLauncher
     /// </summary>
     public static class GruntParser
     {
-
         /// <summary>
         /// Reads all the defined tasks in a Gruntfile whose path is passed as parameter
         /// </summary>
@@ -25,7 +20,7 @@ namespace Bjornej.GruntLauncher
         {
             var list = new List<string>();
 
-            //executes the gruntfile with some little additions :)
+            // executes the gruntfile with some little additions :)
             try
             {
                 var engine = new ScriptEngine();
@@ -33,20 +28,19 @@ namespace Bjornej.GruntLauncher
                 engine.ExecuteFile(path);
                 engine.Execute("module.exports(grunt);");
 
-                //reads the evaluated tasks
+                // reads the evaluated tasks
                 ArrayInstance names = (ArrayInstance)engine.Evaluate("names");
                 foreach (var elem in names.ElementValues)
                 {
                     list.Add((string)elem);
                 }
             }
-            catch (Exception) {
+            catch (Exception)
+            {
                 list.Add("Cannot parse Gruntfile");
             }
 
             return list;
         }
-
-
     }
 }
