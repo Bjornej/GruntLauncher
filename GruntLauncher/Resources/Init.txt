@@ -1,15 +1,17 @@
 var names = [];
 var module = {};
 var grunt = {};
+
 var require = function(){
-	return { 
-		filterDev: function(){
-			return {
-				forEach: function(){}
-			}; 
-		} 
-	};
+	var a = function(){};
+	a.filterDev = function(){
+		return {
+			forEach: function(){}
+		}; 
+	} 
+	return a;
 };
+
 grunt.initConfig=function(param){
 	for(var prop in param){
 		if(param.hasOwnProperty(prop)){
