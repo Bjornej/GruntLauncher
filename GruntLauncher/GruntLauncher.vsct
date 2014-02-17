@@ -91,7 +91,11 @@
   </Commands>
 
 
-
+  <CommandPlacements>
+    <CommandPlacement guid="guidGruntLauncherCmdSet" id="MyMenuGroup" priority="0x0600">
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_WEBITEMNODE"/>
+    </CommandPlacement>
+  </CommandPlacements>
 
 
   <Symbols>
