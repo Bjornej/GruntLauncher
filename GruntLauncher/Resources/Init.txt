@@ -24,3 +24,6 @@ grunt.registerTask= function(name){names.push(name);};
 grunt.loadNpmTasks = function(){};
 grunt.template = {today:function(){}};
 grunt.renameTask = function(a,b){ names.push(b);}
+grunt.option = function(){};
+
+var __dirname = "";
