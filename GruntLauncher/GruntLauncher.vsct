@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <!--  This is the file that defines the actual layout and type of the commands.
@@ -34,22 +34,34 @@
     group; your package should define its own command set in order to avoid collisions  
     with command ids defined by other packages. -->
 
-    
+
     <!-- In this section you can define new menu groups. A menu group is a container for 
          other menus or buttons (commands); from a visual point of view you can see the 
          group as the part of a menu contained between two lines. The parent of a group 
          must be a menu. -->
+
+    <Menus>
+      <Menu guid="guidGruntLauncherCmdSet" id="MyMenu" priority="0x001" type="Menu">
+        <Parent guid="guidGruntLauncherCmdSet" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>Grunt</ButtonText>
+        </Strings>
+      </Menu>
+    </Menus>
+    
     <Groups>
 
       <Group guid="guidGruntLauncherCmdSet" id="MyMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ITEMNODE"/>
-      <GroupFlag>Dynamic</GroupFlag>
       </Group>
-      
 
+      <Group guid="guidGruntLauncherCmdSet" id="MyDynamicMenuGroup" priority="0x0200">
+        <Parent guid="guidGruntLauncherCmdSet" id="MyMenu"/>
+        <GroupFlag>Dynamic</GroupFlag>
+      </Group>
 
     </Groups>
-    
+
     <!--Buttons section. -->
     <!--This section defines the elements the user can interact with, like a menu command or a button 
         or combo box in a toolbar. -->
@@ -61,22 +73,22 @@
               <CommandFlag>DefaultInvisible</CommandFlag>
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
-      
+
       <Button guid="guidGruntLauncherCmdSet" id="cmdidGruntLauncher" type="Button">
-        <Parent guid="guidGruntLauncherCmdSet" id="MyMenuGroup" />
+        <Parent guid="guidGruntLauncherCmdSet" id="MyDynamicMenuGroup" />
         <CommandFlag>DynamicItemStart</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <CommandName>cmdidGruntLauncher</CommandName>
           <ButtonText>Grunt</ButtonText>
         </Strings>
-        
+
       </Button>
 
 
 
     </Buttons>
-   
+
     <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
     <Bitmaps>
       <!--  The bitmap id is defined in a way that is a little bit different from the others: 
@@ -85,9 +97,9 @@
             inside a button definition. An important aspect of this declaration is that the element id 
             must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
       <Bitmap guid="guidImages" href="Resources\Images.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows"/>
-      
+
     </Bitmaps>
- 
+
   </Commands>
 
 
@@ -101,16 +113,17 @@
   <Symbols>
     <!-- This is the package guid. -->
     <GuidSymbol name="guidGruntLauncherPkg" value="{cced4e72-2f8c-4458-b8df-4934677e4bf3}" />
-    
+
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidGruntLauncherCmdSet" value="{59ce41a7-3da6-41c2-bf26-48dac265cbae}">
-
       <IDSymbol name="MyMenuGroup" value="0x1020" />
       <IDSymbol name="cmdidGruntLauncher" value="0x0100" />
+      <IDSymbol name="MyMenu" value="0x1030" />
+      <IDSymbol name="MyDynamicMenuGroup" value="0x1040" />
     </GuidSymbol>
-    
-    
-    
+
+
+
     <GuidSymbol name="guidImages" value="{18bea223-186f-41b3-b1b0-c6384a30ba56}" >
       <IDSymbol name="bmpPic1" value="1" />
       <IDSymbol name="bmpPic2" value="2" />
