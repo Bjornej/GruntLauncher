@@ -82,10 +82,19 @@
           <CommandName>cmdidGruntLauncher</CommandName>
           <ButtonText>Grunt</ButtonText>
         </Strings>
-
       </Button>
 
-
+      <Button guid="guidGruntLauncherCmdSet" id="cmdidBowerUpdater" type="Button">
+        <Parent guid="guidGruntLauncherCmdSet" id="MyMenuGroup" />
+        <Icon guid="guidImages" id="bmpPic1" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>TextChanges</CommandFlag>
+        <Strings>
+          <CommandName>cmdidBowerUpdater</CommandName>
+          <ButtonText>Bower: Update all packages</ButtonText>
+        </Strings>
+      </Button>
 
     </Buttons>
 
@@ -107,6 +116,12 @@
     <CommandPlacement guid="guidGruntLauncherCmdSet" id="MyMenuGroup" priority="0x0600">
       <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_WEBITEMNODE"/>
     </CommandPlacement>
+    <CommandPlacement guid="guidGruntLauncherCmdSet" id="MyMenuGroup" priority="0x0010">
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_FOLDERNODE"/>
+    </CommandPlacement>
+    <CommandPlacement guid="guidGruntLauncherCmdSet" id="MyMenuGroup" priority="0x0010">
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_WEBFOLDER"/>
+    </CommandPlacement>
   </CommandPlacements>
 
 
@@ -120,6 +135,7 @@
       <IDSymbol name="cmdidGruntLauncher" value="0x0100" />
       <IDSymbol name="MyMenu" value="0x1030" />
       <IDSymbol name="MyDynamicMenuGroup" value="0x1040" />
+      <IDSymbol name="cmdidBowerUpdater" value="0x1050" />
     </GuidSymbol>
 
 

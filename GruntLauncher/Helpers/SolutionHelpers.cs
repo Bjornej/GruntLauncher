@@ -3,6 +3,8 @@
     using System;
     using EnvDTE;
     using Microsoft.VisualStudio.Shell;
+    using EnvDTE80;
+    using System.IO;
 
     /// <summary>
     ///     Static helper methods to interact with the visual studio open solution
@@ -48,6 +50,37 @@
             }
 
             return string.Empty;
+        }
+
+        public static string GetRootFolder(DTE2 dte)
+        {
+            Project project = GetActiveProject(dte);
+
+            if (project == null)
+                return null;
+
+            string path = project.Properties.Item("FullPath").Value.ToString();
+            
+            if (Directory.Exists(path))
+                return path;
+
+            return Path.GetDirectoryName(path);
+        }
+
+        private static Project GetActiveProject(DTE2 dte)
+        {
+            try
+            {
+                Array activeSolutionProjects = dte.ActiveSolutionProjects as Array;
+
+                if (activeSolutionProjects != null && activeSolutionProjects.Length > 0)
+                    return activeSolutionProjects.GetValue(0) as Project;
+            }
+            catch (Exception)
+            {
+            }
+
+            return null;
         }
     }
 }

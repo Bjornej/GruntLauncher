@@ -8,6 +8,8 @@
     using System.Runtime.InteropServices;
     using Bjornej.GruntLauncher.Helpers;
     using Microsoft.VisualStudio.Shell;
+    using EnvDTE80;
+    using EnvDTE;
 
     /// <summary>
     ///     Main class that implements the gruntLauncher packages
@@ -40,6 +42,11 @@
         private string lastFile;
 
         /// <summary>
+        /// The DTE object of Visual Studio
+        /// </summary>
+        private static DTE2 dte;
+
+        /// <summary>
         ///     Default constructor of the package.
         ///     Inside this method you can place any initialization code that does not require 
         ///     any Visual Studio service because at this point the package object is created but 
@@ -62,6 +69,7 @@
         protected override void Initialize()
         {
             base.Initialize();
+            dte = GetService(typeof(DTE)) as DTE2;
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
             OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
@@ -74,8 +82,57 @@
                 command.BeforeQueryStatus += this.SetVisibility;
                 baseCommand = command;
                 mcs.AddCommand(command);
+
+                CommandID cmdBower = new CommandID(GuidList.guidGruntLauncherCmdSet, (int)PkgCmdIDList.cmdidBowerUpdater);
+                OleMenuCommand bower = new OleMenuCommand(this.UpdateBower, cmdBower);
+                bower.BeforeQueryStatus += BowerBeforeQueryStatus;
+                mcs.AddCommand(bower);
             }
         }
+
+        #endregion
+
+        #region Bower
+
+        private bool isParent, isChild;
+
+        private void BowerBeforeQueryStatus(object sender, EventArgs e)
+        {
+            OleMenuCommand button = (OleMenuCommand)sender;
+            string path = SolutionHelpers.GetSourceFilePath();
+
+            isParent = path.EndsWith("bower_components\\", StringComparison.OrdinalIgnoreCase);
+
+            if (isParent)
+            {
+                button.Text = "Bower: Update all packages";
+            }
+            else
+            {
+                isChild = Directory.GetParent(path).Parent.Name.EndsWith("bower_components", StringComparison.OrdinalIgnoreCase);
+                button.Text = "Bower: Update " + Directory.GetParent(path).Name;
+            }
+
+            button.Visible = isParent || isChild;
+        }
+
+        private void UpdateBower(object sender, EventArgs e)
+        {
+            string path = SolutionHelpers.GetSourceFilePath();
+            OleMenuCommand button = (OleMenuCommand)sender;
+
+            if (isParent)
+            {
+                button.Text = "Update Bower Packages";
+                RunProcess(button, " /c \"bower update 2>&1 \" ");
+            }
+            else if (isChild)
+            {
+                string bowerPackage = new DirectoryInfo(path).Name;
+                RunProcess(button, " /c \"bower update " + bowerPackage + " 2>&1 \" ");
+            }
+        }
+
         #endregion
 
         /// <summary>
@@ -195,51 +252,59 @@
                 }
             }
 
+            if (!cmd.Checked)
+            {
+                // launches the grunt process and redirects the output to the output window
+                RunProcess(cmd, " /c \"grunt --no-color " + task + "  2>&1 \" ");
+            }
+            else
+            {
+                cmd.Checked = false;
+            }
+        }
+
+        private static void RunProcess(OleMenuCommand cmd, string argument)
+        {
+            dte.StatusBar.Animate(true, vsStatusAnimation.vsStatusAnimationBuild);
+
             try
             {
-                if (!cmd.Checked)
+                System.Diagnostics.ProcessStartInfo procStartInfo = new ProcessStartInfo()
                 {
-                    // launches the grunt process and redirects the output to the output window
-                    System.Diagnostics.ProcessStartInfo procStartInfo = new ProcessStartInfo()
-                    {
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                        WorkingDirectory = Path.GetDirectoryName(SolutionHelpers.GetSourceFilePath()),
-                        FileName = "cmd",
-                        Arguments = " /c \"grunt --no-color " + task + "  2>&1 \" "
-                    };
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WorkingDirectory = SolutionHelpers.GetRootFolder(dte),
+                    FileName = "cmd",
+                    Arguments = argument,
+                };
 
-                    System.Diagnostics.Process proc = new System.Diagnostics.Process()
-                    {
-                        StartInfo = procStartInfo,
-                        EnableRaisingEvents = true
-                    };
-
-                    OutputHelpers.Output("Executing " + " grunt " + task + " \r\n\r\n", true);
-
-                    proc.OutputDataReceived += (object sendingProcess, DataReceivedEventArgs outLine) => OutputHelpers.Output(outLine.Data + "\r\n");
-                    proc.ErrorDataReceived += (object sendingProcess, DataReceivedEventArgs outLine) => OutputHelpers.Output(outLine.Data + "\r\n");
-                    proc.Exited += (x, y) =>
-                    {
-                        processes.Remove(cmd);
-                        cmd.Checked = false;
-                    };
-
-                    proc.Start();
-
-                    proc.BeginOutputReadLine();
-                    proc.BeginErrorReadLine();
-
-                    cmd.Checked = true;
-
-                    processes.Add(cmd, proc);
-                }
-                else
+                System.Diagnostics.Process proc = new System.Diagnostics.Process()
                 {
+                    StartInfo = procStartInfo,
+                    EnableRaisingEvents = true
+                };
+
+                OutputHelpers.Output("Executing " + cmd.Text + " \r\n\r\n", true);
+
+                proc.OutputDataReceived += (object sendingProcess, DataReceivedEventArgs outLine) => OutputHelpers.Output(outLine.Data + "\r\n");
+                proc.ErrorDataReceived += (object sendingProcess, DataReceivedEventArgs outLine) => OutputHelpers.Output(outLine.Data + "\r\n");
+                proc.Exited += (x, y) =>
+                {
+                    processes.Remove(cmd);
                     cmd.Checked = false;
-                }
+                    dte.StatusBar.Animate(false, vsStatusAnimation.vsStatusAnimationBuild);
+                };
+
+                proc.Start();
+
+                proc.BeginOutputReadLine();
+                proc.BeginErrorReadLine();
+
+                cmd.Checked = true;
+
+                processes.Add(cmd, proc);
             }
             catch (Exception ex)
             {
