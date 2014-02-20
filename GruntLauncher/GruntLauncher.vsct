@@ -47,6 +47,13 @@
           <ButtonText>Grunt</ButtonText>
         </Strings>
       </Menu>
+    
+    <Menu guid="guidGruntLauncherCmdSet" id="MyGulpMenu" priority="0x002" type="Menu">
+        <Parent guid="guidGruntLauncherCmdSet" id="MyGulpMenuGroup" />
+        <Strings>
+          <ButtonText>Gulp</ButtonText>
+        </Strings>
+      </Menu>
     </Menus>
     
     <Groups>
@@ -55,8 +62,17 @@
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ITEMNODE"/>
       </Group>
 
+      <Group guid="guidGruntLauncherCmdSet" id="MyGulpMenuGroup" priority="0x0700">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ITEMNODE"/>
+      </Group>
+        
       <Group guid="guidGruntLauncherCmdSet" id="MyDynamicMenuGroup" priority="0x0200">
         <Parent guid="guidGruntLauncherCmdSet" id="MyMenu"/>
+        <GroupFlag>Dynamic</GroupFlag>
+      </Group>
+      
+    <Group guid="guidGruntLauncherCmdSet" id="MyGulpDynamicMenuGroup" priority="0x0300">
+        <Parent guid="guidGruntLauncherCmdSet" id="MyGulpMenu"/>
         <GroupFlag>Dynamic</GroupFlag>
       </Group>
 
@@ -83,7 +99,17 @@
           <ButtonText>Grunt</ButtonText>
         </Strings>
       </Button>
-
+      
+      <Button guid="guidGruntLauncherCmdSet" id="cmdidGulpLauncher" type="Button">
+        <Parent guid="guidGruntLauncherCmdSet" id="MyGulpDynamicMenuGroup" />
+        <CommandFlag>DynamicItemStart</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Strings>
+          <CommandName>cmdidGulpLauncher</CommandName>
+          <ButtonText>Gulp</ButtonText>
+        </Strings>
+      </Button>
+      
       <Button guid="guidGruntLauncherCmdSet" id="cmdidBowerUpdater" type="Button">
         <Parent guid="guidGruntLauncherCmdSet" id="MyMenuGroup" />
         <Icon guid="guidImages" id="bmpPic1" />
@@ -122,6 +148,8 @@
     <CommandPlacement guid="guidGruntLauncherCmdSet" id="MyMenuGroup" priority="0x0010">
       <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_WEBFOLDER"/>
     </CommandPlacement>
+    
+  
   </CommandPlacements>
 
 
@@ -132,9 +160,13 @@
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidGruntLauncherCmdSet" value="{59ce41a7-3da6-41c2-bf26-48dac265cbae}">
       <IDSymbol name="MyMenuGroup" value="0x1020" />
+      <IDSymbol name="MyGulpMenuGroup" value="0x1080" />    
+      <IDSymbol name="cmdidGulpLauncher" value="0x0200" />
       <IDSymbol name="cmdidGruntLauncher" value="0x0100" />
       <IDSymbol name="MyMenu" value="0x1030" />
+      <IDSymbol name="MyGulpMenu" value="0x1060" />
       <IDSymbol name="MyDynamicMenuGroup" value="0x1040" />
+      <IDSymbol name="MyGulpDynamicMenuGroup" value="0x1070" />
       <IDSymbol name="cmdidBowerUpdater" value="0x1050" />
     </GuidSymbol>
 

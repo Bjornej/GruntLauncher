@@ -1,0 +1,34 @@
+var tasks = [];
+
+var gulpFN = {};
+
+gulpFN.task = function(task, func){
+	tasks.push(task);
+}
+
+gulpFN.src = function(){
+	return gulpFN;
+}
+
+gulpFN.dest = function(){
+	return gulpFN;
+}
+
+gulpFN.pipe = function(){
+	return gulpFN;
+}
+
+gulpFN.watch= function(){
+
+}
+
+var require = function(param){
+	if(param==="gulp"){
+		return gulpFN;
+	}else{
+		var f = function(){}
+		return f;
+	}
+};
+
+var __dirname="";

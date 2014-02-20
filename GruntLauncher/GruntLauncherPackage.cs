@@ -83,6 +83,12 @@
                 baseCommand = command;
                 mcs.AddCommand(command);
 
+                CommandID gulpMenuCommandID = new CommandID(GuidList.guidGruntLauncherCmdSet, (int)PkgCmdIDList.cmdidGulpLauncher);
+                OleMenuCommand gulpCommand = new OleMenuCommand(this.GulpCallback, gulpMenuCommandID);
+                gulpCommand.Visible = false;
+                gulpCommand.BeforeQueryStatus += this.GulpBeforeQueryStatus;
+                mcs.AddCommand(gulpCommand);
+
                 CommandID cmdBower = new CommandID(GuidList.guidGruntLauncherCmdSet, (int)PkgCmdIDList.cmdidBowerUpdater);
                 OleMenuCommand bower = new OleMenuCommand(this.UpdateBower, cmdBower);
                 bower.BeforeQueryStatus += BowerBeforeQueryStatus;
@@ -150,10 +156,6 @@
             {
                 return false;
             }
-            else
-            {
-                this.lastFile = path;
-            }
 
             return true;
         }
@@ -170,6 +172,15 @@
             return path.ToLower().IndexOf("gruntfile.js") != -1;
         }
 
+        private bool IsGulpFile()
+        {
+            // gets the full path of the clicked file
+            var path = SolutionHelpers.GetSourceFilePath();
+
+            return path.ToLower().IndexOf("gulpfile.js") != -1;
+        }
+
+
         /// <summary>
         /// Sets the visibility of the command and creates the dynamic list of commands
         /// </summary>
@@ -180,15 +191,25 @@
             // gets the full path of the clicked file
             var path = SolutionHelpers.GetSourceFilePath();
 
+            var myCommand = sender as OleMenuCommand;
+
+            // if the currently selected file is a Gruntfile set the command to visible
+            myCommand.Visible = this.IsGruntFile();
+
+
+            if (!this.IsGruntFile() && !this.IsGulpFile())
+            {
+                this.lastFile = path;
+            }
+
             if (!this.IsNewFile())
             {
                 return;
             }
 
-            var myCommand = sender as OleMenuCommand;
 
-            // if the currently selected file is a Gruntfile set the command to visible
-            myCommand.Visible = this.IsGruntFile();
+
+
             OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
 
             // delete the old command list
@@ -204,6 +225,7 @@
 
             if (myCommand.Visible)
             {
+                this.lastFile = path;
                 var list = GruntParser.ReadAllTasks(path);
                 if (list.Contains("default"))
                 {
@@ -224,6 +246,59 @@
                 }
             }
         }
+
+        private void GulpBeforeQueryStatus(object sender, EventArgs e)
+        {
+            // gets the full path of the clicked file
+            var path = SolutionHelpers.GetSourceFilePath();
+
+            var myCommand = sender as OleMenuCommand;
+            myCommand.Visible = this.IsGulpFile();
+
+
+            if (!this.IsNewFile())
+            {
+                return;
+            }
+
+            OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
+
+            // delete the old command list
+            if (commands == null)
+            {
+                commands = new List<OleMenuCommand>();
+            }
+
+            foreach (var cmd in commands)
+            {
+                mcs.RemoveCommand(cmd);
+            }
+
+            if (myCommand.Visible)
+            {
+                this.lastFile = path;
+
+                var list = GulpParser.ReadAllTasks(path);
+                if (list.Contains("default"))
+                {
+                    list.Remove("default");
+                }
+
+                // creates the list of commands
+                int j = 1;
+                foreach (var ele in list)
+                {
+                    CommandID menuCommandID = new CommandID(GuidList.guidGruntLauncherCmdSet, (int)PkgCmdIDList.cmdidGulpLauncher + j);
+                    j++;
+                    OleMenuCommand command = new OleMenuCommand(this.GulpCallback, menuCommandID);
+                    command.Text = "Gulp: " + ele;
+                    command.BeforeQueryStatus += (x, y) => { (x as OleMenuCommand).Visible = true; };
+                    commands.Add(command);
+                    mcs.AddCommand(command);
+                }
+            }
+        }
+
 
         /// <summary>
         /// This function is the callback used to execute a command when the a menu item is clicked.
@@ -262,6 +337,38 @@
                 cmd.Checked = false;
             }
         }
+
+        private void GulpCallback(object sender, EventArgs e)
+        {
+            var cmd = (OleMenuCommand)sender;
+            var text = cmd.Text;
+            var task = text.Substring(text.IndexOf(':') + 1).Trim();
+
+            // if the command is checked it means that there is a running grunt task associated
+            // so we kill it
+            if (cmd.Checked)
+            {
+                System.Diagnostics.Process pro;
+                processes.TryGetValue(cmd, out pro);
+                if (pro != null)
+                {
+                    OutputHelpers.Output("Stopping process " + cmd.Text);
+                    ProcessHelpers.KillProcessAndChildren(pro.Id);
+                    processes.Remove(cmd);
+                }
+            }
+
+            if (!cmd.Checked)
+            {
+                // launches the grunt process and redirects the output to the output window
+                RunProcess(cmd, " /c \"gulp --no-color " + task + "  2>&1 \" ");
+            }
+            else
+            {
+                cmd.Checked = false;
+            }
+        }
+
 
         private static void RunProcess(OleMenuCommand cmd, string argument)
         {
