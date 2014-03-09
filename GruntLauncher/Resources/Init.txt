@@ -21,6 +21,7 @@ grunt.initConfig=function(param){
 };
 grunt.file = { readJSON: function(){return {};}}
 grunt.registerTask= function(name){names.push(name);};
+grunt.registerMultiTask= function(name){names.push(name);};
 grunt.loadNpmTasks = function(){};
 grunt.template = {today:function(){}};
 grunt.renameTask = function(a,b){ names.push(b);}
