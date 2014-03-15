@@ -2,11 +2,11 @@
 
 Originally a plugin made to launch grunt taasks from inside Visual studio by right-clicking your gruntfile in the solution explorer it has now been extended with new functionality:
 
-- Launch grunt tasks from the solutio solution explorer. When  right clicking on a gruntfile you will see a new submenu listing all your options 
+- Launch grunt tasks from the solution solution explorer. When  right clicking on a gruntfile you will see a new submenu listing all your options 
 
 ![grunt](http://bjornej.github.io/images/grunt.png)
 
-- Execute bower updates when right clicking on the bower folder or on a plugin folder
+- Execute bower updates when right clicking on the bower folder or on a plugin folder (thanks to Mads Kristensen for this feature) 
 
 ![bowerall](http://bjornej.github.io/images/bowerall.png)
 ![bower](http://bjornej.github.io/images/bower.png)
