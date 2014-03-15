@@ -1,13 +1,20 @@
 ### GruntLauncher ###
 
-A simple add-on for Visual Studio that adds options for launching Grunt commands directly from the Solution Explorer contextual menu when right-clicking over a Gruntfile.
+Originally a plugin made to launch grunt taasks from inside Visual studio by right-clicking your gruntfile in the solution explorer it has now been extended with new functionality:
 
-![Example](http://bjornej.github.io/images/GruntLauncher.png)
+- Launch grunt tasks from the solutio solution explorer. When  right clicking on a gruntfile you will see a new submenu listing all your options 
 
-Long running processes like 'grunt watch' continue to run in the background and can be killed by selecting them again when checked
+![grunt](http://bjornej.github.io/images/grunt.png)
 
-![running](https://f.cloud.github.com/assets/4615891/1718412/b5cb1028-61dc-11e3-802b-ba7dc8808ec1.png)
+- Execute bower updates when right clicking on the bower folder or on a plugin folder
+
+![bowerall](http://bjornej.github.io/images/bowerall.png)
+![bower](http://bjornej.github.io/images/bower.png)
+
+- Launch gulp tasks by right clicking on your gulpfile
+
+![gulp](http://bjornej.github.io/images/gulp.png)
 
 #### Attention
 
-To work well this plugin needs a recent version of node.js installed on yout system due to a bug where output is not correclty redirected. If you don't see grunt output try to update node.js.
+To work well this plugin needs a recent version of node.js installed on yout system due to a bug where output is not correclty redirected. If you don't see any output try to update node.js.
