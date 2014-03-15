@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using Jurassic;
     using Jurassic.Library;
 
@@ -40,7 +41,7 @@
                 list.Add("Cannot parse Gruntfile");
             }
 
-            return list;
+            return list.Distinct().ToList();
         }
     }
 }

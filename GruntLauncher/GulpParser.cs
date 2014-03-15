@@ -4,6 +4,7 @@
     using Jurassic.Library;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     public static class GulpParser
     {
@@ -30,7 +31,7 @@
                 list.Add("Cannot parse gulpfile");
             }
 
-            return list;
+            return list.Distinct().ToList();
         }
     }
 }
