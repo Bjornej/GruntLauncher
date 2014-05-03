@@ -16,6 +16,21 @@ grunt.initConfig=function(param){
 	for(var prop in param){
 		if(param.hasOwnProperty(prop)){
 			names.push(prop);
+			if(param[prop] === Object(param[prop])){
+			    var arr=[];
+				for(var innerProp in param[prop]){
+					if(param[prop].hasOwnProperty(innerProp)){
+						if(innerProp!=='options'){
+							arr.push(prop+":"+innerProp);
+						}
+					}
+				}
+				if(arr.length > 1){
+					for (var i=0;i< arr.length;i++){
+						names.push(arr[i]);
+					}
+				}
+			}
 		}
 	}
 };

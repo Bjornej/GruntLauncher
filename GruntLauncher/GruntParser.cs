@@ -33,10 +33,10 @@
                 ArrayInstance names = (ArrayInstance)engine.Evaluate("names");
                 foreach (var elem in names.ElementValues)
                 {
-                    list.Add((string)elem);
+                    list.Add(elem.ToString());
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 list.Add("Cannot parse Gruntfile");
             }
