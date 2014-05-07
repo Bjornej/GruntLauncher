@@ -382,7 +382,7 @@
                     RedirectStandardError = true,
                     UseShellExecute = false,
                     CreateNoWindow = true,
-                    WorkingDirectory = SolutionHelpers.GetRootFolder(dte),
+                    WorkingDirectory = Path.GetDirectoryName( SolutionHelpers.GetSourceFilePath()),
                     FileName = "cmd",
                     Arguments = argument,
                 };
