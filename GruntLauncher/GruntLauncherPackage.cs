@@ -130,12 +130,12 @@
             if (isParent)
             {
                 button.Text = "Update Bower Packages";
-                RunProcess(button, " /c \"bower update 2>&1 \" ");
+                RunProcess(button, " /c \"bower update 2>&1 \" ",true);
             }
             else if (isChild)
             {
                 string bowerPackage = new DirectoryInfo(path).Name;
-                RunProcess(button, " /c \"bower update " + bowerPackage + " 2>&1 \" ");
+                RunProcess(button, " /c \"bower update " + bowerPackage + " 2>&1 \" ",true);
             }
         }
 
@@ -330,7 +330,7 @@
             if (!cmd.Checked)
             {
                 // launches the grunt process and redirects the output to the output window
-                RunProcess(cmd, " /c \"grunt --no-color " + task + "  2>&1 \" ");
+                RunProcess(cmd, " /c \"grunt --no-color " + task + "  2>&1 \" ",false);
             }
             else
             {
@@ -361,7 +361,7 @@
             if (!cmd.Checked)
             {
                 // launches the grunt process and redirects the output to the output window
-                RunProcess(cmd, " /c \"gulp --no-color " + task + "  2>&1 \" ");
+                RunProcess(cmd, " /c \"gulp --no-color " + task + "  2>&1 \" ",false);
             }
             else
             {
@@ -370,7 +370,7 @@
         }
 
 
-        private static void RunProcess(OleMenuCommand cmd, string argument)
+        private static void RunProcess(OleMenuCommand cmd, string argument, bool fromRoot)
         {
             dte.StatusBar.Animate(true, vsStatusAnimation.vsStatusAnimationBuild);
 
@@ -382,7 +382,7 @@
                     RedirectStandardError = true,
                     UseShellExecute = false,
                     CreateNoWindow = true,
-                    WorkingDirectory = Path.GetDirectoryName( SolutionHelpers.GetSourceFilePath()),
+                    WorkingDirectory = fromRoot? SolutionHelpers.GetRootFolder(dte) : Path.GetDirectoryName( SolutionHelpers.GetSourceFilePath()),
                     FileName = "cmd",
                     Arguments = argument,
                 };
