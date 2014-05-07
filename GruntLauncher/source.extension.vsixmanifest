@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="cced4e72-2f8c-4458-b8df-4934677e4bf3" Version="1.5.2" Language="en-US" Publisher="Bjornej" />
+    <Identity Id="cced4e72-2f8c-4458-b8df-4934677e4bf3" Version="1.5.3" Language="en-US" Publisher="Bjornej" />
     <DisplayName>Grunt Launcher</DisplayName>
     <Description xml:space="preserve">Right click extension to launch Grunt, Gulp and Bower commands in Visual Studio.</Description>
     <MoreInfo>https://github.com/Bjornej/GruntLauncher</MoreInfo>
