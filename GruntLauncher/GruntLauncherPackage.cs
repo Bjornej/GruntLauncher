@@ -93,7 +93,33 @@
                 OleMenuCommand bower = new OleMenuCommand(this.UpdateBower, cmdBower);
                 bower.BeforeQueryStatus += BowerBeforeQueryStatus;
                 mcs.AddCommand(bower);
+
+                CommandID cmdNpm = new CommandID(GuidList.guidGruntLauncherCmdSet, (int)PkgCmdIDList.cmdidNpmUpdater);
+                OleMenuCommand npm = new OleMenuCommand(this.UpdateNpm, cmdNpm);
+                npm.BeforeQueryStatus += NpmBeforeQueryStatus;
+                mcs.AddCommand(npm);
             }
+        }
+
+        #endregion
+
+        #region NPM
+
+        string packageFile;
+
+        private void NpmBeforeQueryStatus(object sender, EventArgs e)
+        {
+            OleMenuCommand button = (OleMenuCommand)sender;
+            packageFile = SolutionHelpers.GetSourceFilePath();
+            bool isPackage = Path.GetFileName(packageFile).Equals("package.json", StringComparison.OrdinalIgnoreCase);
+            button.Visible = isPackage;
+        }
+
+        private void UpdateNpm(object sender, EventArgs e)
+        {
+            OleMenuCommand button = (OleMenuCommand)sender;
+            string rootDir = new DirectoryInfo(packageFile).Name;
+            RunProcess(button, " /c \"npm update 2>&1 \" ", true);
         }
 
         #endregion
