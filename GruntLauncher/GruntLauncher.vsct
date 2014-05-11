@@ -129,7 +129,7 @@
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <CommandName>NpmUpdate</CommandName>
-          <ButtonText>Update/install packages</ButtonText>
+          <ButtonText>NPM install packages</ButtonText>
         </Strings>
       </Button>
 
