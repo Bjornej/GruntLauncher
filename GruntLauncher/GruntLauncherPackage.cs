@@ -119,7 +119,7 @@
         {
             OleMenuCommand button = (OleMenuCommand)sender;
             string rootDir = new DirectoryInfo(packageFile).Name;
-            RunProcess(button, " /c \"npm install 2>&1 \" ", true);
+            RunProcess(button, " /c \"npm install 2>&1 \" ", false);
         }
 
         #endregion
