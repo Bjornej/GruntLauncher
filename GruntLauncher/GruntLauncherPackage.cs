@@ -89,57 +89,10 @@
 
                 Utilities.Gulp.Init.Start(dte, mcs);
                 Utilities.Npm.Init.Start(dte, mcs);
-
-                CommandID cmdBower = new CommandID(GuidList.guidGruntLauncherCmdSet, (int)PkgCmdIDList.cmdidBowerUpdater);
-                OleMenuCommand bower = new OleMenuCommand(this.UpdateBower, cmdBower);
-                bower.BeforeQueryStatus += BowerBeforeQueryStatus;
-                mcs.AddCommand(bower);
+                Utilities.Bower.Init.Start(dte, mcs);
 
 
-            }
-        }
 
-        #endregion
-
-
-        #region Bower
-
-        private bool isParent, isChild;
-
-        private void BowerBeforeQueryStatus(object sender, EventArgs e)
-        {
-            OleMenuCommand button = (OleMenuCommand)sender;
-            string path = SolutionHelpers.GetSourceFilePath();
-
-            isParent = path.EndsWith("bower_components\\", StringComparison.OrdinalIgnoreCase);
-
-            if (isParent)
-            {
-                button.Text = "Bower: Update all packages";
-            }
-            else
-            {
-                isChild = Directory.GetParent(path).Parent.Name.EndsWith("bower_components", StringComparison.OrdinalIgnoreCase);
-                button.Text = "Bower: Update " + Directory.GetParent(path).Name;
-            }
-
-            button.Visible = isParent || isChild;
-        }
-
-        private void UpdateBower(object sender, EventArgs e)
-        {
-            string path = SolutionHelpers.GetSourceFilePath();
-            OleMenuCommand button = (OleMenuCommand)sender;
-
-            if (isParent)
-            {
-                button.Text = "Update Bower Packages";
-                RunProcess(button, " /c \"bower update 2>&1 \" ",true);
-            }
-            else if (isChild)
-            {
-                string bowerPackage = new DirectoryInfo(path).Name;
-                RunProcess(button, " /c \"bower update " + bowerPackage + " 2>&1 \" ",true);
             }
         }
 
