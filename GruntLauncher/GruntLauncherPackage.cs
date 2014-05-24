@@ -24,22 +24,24 @@
         /// <summary>
         /// List of dynamic commands
         /// </summary>
-        private static List<OleMenuCommand> commands;
+        public static List<OleMenuCommand> commands;
 
         /// <summary>
         /// Base Grunt command
         /// </summary>
-        private static OleMenuCommand baseCommand;
+        public static OleMenuCommand baseCommand;
 
         /// <summary>
         ///     Dictionary of currently running processes
         /// </summary>
-        private static Dictionary<OleMenuCommand, System.Diagnostics.Process> processes;
+        public static Dictionary<OleMenuCommand, System.Diagnostics.Process> processes;
+
+        public static OleMenuCommandService MenuService { get; set; }
 
         /// <summary>
         ///     Last clicked file. Used to avoid reevaluating continuosly the same file
         /// </summary>
-        private string lastFile;
+        public static string lastFile;
 
         /// <summary>
         /// The DTE object of Visual Studio
@@ -75,6 +77,8 @@
             OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if (null != mcs)
             {
+                MenuService = mcs;
+
                 // Create the command for the menu item.
                 CommandID menuCommandID = new CommandID(GuidList.guidGruntLauncherCmdSet, (int)PkgCmdIDList.cmdidGruntLauncher);
                 OleMenuCommand command = new OleMenuCommand(this.MenuItemCallback, menuCommandID);
@@ -83,46 +87,20 @@
                 baseCommand = command;
                 mcs.AddCommand(command);
 
-                CommandID gulpMenuCommandID = new CommandID(GuidList.guidGruntLauncherCmdSet, (int)PkgCmdIDList.cmdidGulpLauncher);
-                OleMenuCommand gulpCommand = new OleMenuCommand(this.GulpCallback, gulpMenuCommandID);
-                gulpCommand.Visible = false;
-                gulpCommand.BeforeQueryStatus += this.GulpBeforeQueryStatus;
-                mcs.AddCommand(gulpCommand);
+                Utilities.Gulp.Init.Start(dte, mcs);
+                Utilities.Npm.Init.Start(dte, mcs);
 
                 CommandID cmdBower = new CommandID(GuidList.guidGruntLauncherCmdSet, (int)PkgCmdIDList.cmdidBowerUpdater);
                 OleMenuCommand bower = new OleMenuCommand(this.UpdateBower, cmdBower);
                 bower.BeforeQueryStatus += BowerBeforeQueryStatus;
                 mcs.AddCommand(bower);
 
-                CommandID cmdNpm = new CommandID(GuidList.guidGruntLauncherCmdSet, (int)PkgCmdIDList.cmdidNpmUpdater);
-                OleMenuCommand npm = new OleMenuCommand(this.UpdateNpm, cmdNpm);
-                npm.BeforeQueryStatus += NpmBeforeQueryStatus;
-                mcs.AddCommand(npm);
+
             }
         }
 
         #endregion
 
-        #region NPM
-
-        string packageFile;
-
-        private void NpmBeforeQueryStatus(object sender, EventArgs e)
-        {
-            OleMenuCommand button = (OleMenuCommand)sender;
-            packageFile = SolutionHelpers.GetSourceFilePath();
-            bool isPackage = Path.GetFileName(packageFile).Equals("package.json", StringComparison.OrdinalIgnoreCase);
-            button.Visible = isPackage;
-        }
-
-        private void UpdateNpm(object sender, EventArgs e)
-        {
-            OleMenuCommand button = (OleMenuCommand)sender;
-            string rootDir = new DirectoryInfo(packageFile).Name;
-            RunProcess(button, " /c \"npm install 2>&1 \" ", false);
-        }
-
-        #endregion
 
         #region Bower
 
@@ -172,13 +150,13 @@
         ///     last time
         /// </summary>
         /// <returns>Boolean that indicates if a new file was clicked</returns>
-        private bool IsNewFile()
+        public static bool IsNewFile()
         {
             // gets the full path of the clicked file
             var path = SolutionHelpers.GetSourceFilePath();
 
             // optimization to avoid parsing the file again if the clicked file has not changed since last time
-            if (path == this.lastFile)
+            if (path == lastFile)
             {
                 return false;
             }
@@ -198,13 +176,6 @@
             return path.ToLower().IndexOf("gruntfile.js") != -1;
         }
 
-        private bool IsGulpFile()
-        {
-            // gets the full path of the clicked file
-            var path = SolutionHelpers.GetSourceFilePath();
-
-            return path.ToLower().IndexOf("gulpfile.js") != -1;
-        }
 
 
         /// <summary>
@@ -223,12 +194,12 @@
             myCommand.Visible = this.IsGruntFile();
 
 
-            if (!this.IsGruntFile() && !this.IsGulpFile())
+            if (!this.IsGruntFile() && !Utilities.Gulp.Init.IsGulpFile())
             {
-                this.lastFile = path;
+                lastFile = path;
             }
 
-            if (!this.IsNewFile())
+            if (!IsNewFile())
             {
                 return;
             }
@@ -251,7 +222,7 @@
 
             if (myCommand.Visible)
             {
-                this.lastFile = path;
+                lastFile = path;
                 var list = GruntParser.ReadAllTasks(path);
                 if (list.Contains("default"))
                 {
@@ -272,59 +243,6 @@
                 }
             }
         }
-
-        private void GulpBeforeQueryStatus(object sender, EventArgs e)
-        {
-            // gets the full path of the clicked file
-            var path = SolutionHelpers.GetSourceFilePath();
-
-            var myCommand = sender as OleMenuCommand;
-            myCommand.Visible = this.IsGulpFile();
-
-
-            if (!this.IsNewFile())
-            {
-                return;
-            }
-
-            OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
-
-            // delete the old command list
-            if (commands == null)
-            {
-                commands = new List<OleMenuCommand>();
-            }
-
-            foreach (var cmd in commands)
-            {
-                mcs.RemoveCommand(cmd);
-            }
-
-            if (myCommand.Visible)
-            {
-                this.lastFile = path;
-
-                var list = GulpParser.ReadAllTasks(path);
-                if (list.Contains("default"))
-                {
-                    list.Remove("default");
-                }
-
-                // creates the list of commands
-                int j = 1;
-                foreach (var ele in list)
-                {
-                    CommandID menuCommandID = new CommandID(GuidList.guidGruntLauncherCmdSet, (int)PkgCmdIDList.cmdidGulpLauncher + j);
-                    j++;
-                    OleMenuCommand command = new OleMenuCommand(this.GulpCallback, menuCommandID);
-                    command.Text = "Gulp: " + ele;
-                    command.BeforeQueryStatus += (x, y) => { (x as OleMenuCommand).Visible = true; };
-                    commands.Add(command);
-                    mcs.AddCommand(command);
-                }
-            }
-        }
-
 
         /// <summary>
         /// This function is the callback used to execute a command when the a menu item is clicked.
@@ -364,39 +282,7 @@
             }
         }
 
-        private void GulpCallback(object sender, EventArgs e)
-        {
-            var cmd = (OleMenuCommand)sender;
-            var text = cmd.Text;
-            var task = text.Substring(text.IndexOf(':') + 1).Trim();
-
-            // if the command is checked it means that there is a running grunt task associated
-            // so we kill it
-            if (cmd.Checked)
-            {
-                System.Diagnostics.Process pro;
-                processes.TryGetValue(cmd, out pro);
-                if (pro != null)
-                {
-                    OutputHelpers.Output("Stopping process " + cmd.Text);
-                    ProcessHelpers.KillProcessAndChildren(pro.Id);
-                    processes.Remove(cmd);
-                }
-            }
-
-            if (!cmd.Checked)
-            {
-                // launches the grunt process and redirects the output to the output window
-                RunProcess(cmd, " /c \"gulp --no-color " + task + "  2>&1 \" ",false);
-            }
-            else
-            {
-                cmd.Checked = false;
-            }
-        }
-
-
-        private static void RunProcess(OleMenuCommand cmd, string argument, bool fromRoot)
+        public static void RunProcess(OleMenuCommand cmd, string argument, bool fromRoot)
         {
             dte.StatusBar.Animate(true, vsStatusAnimation.vsStatusAnimationBuild);
 
@@ -444,5 +330,6 @@
                 OutputHelpers.Output(ex.Message);
             }
         }
+
     }
 }

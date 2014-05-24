@@ -14,23 +14,20 @@
         </Grid.RowDefinitions>
         
         <Grid Name="MainSection" MinHeight="400">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <DockPanel Margin="10">
-                <StackPanel DockPanel.Dock="Right" Margin="10,0">
-                    <StackPanel.Resources>
-                        <Style TargetType="Button">
-                            <Setter Property="Margin" Value="0,0,0,5" />
-                            <Setter Property="Padding" Value="10,2" />
-                        </Style>
-                    </StackPanel.Resources>
-                    <Button Name="btnInstalled">Installed Packages</Button>
-                    <Button Name="btnOnline">Online</Button>
-                    <Button Name="btnUpdates">Updates</Button>
-                </StackPanel>
-            </DockPanel>
+            <TabControl TabStripPlacement="Left">
+                <TabItem Header="Installed" Selector.IsSelected="True">
+                    <ListView Name="InstalledPackagesList">
+                    </ListView>
+                </TabItem>
+                <TabItem Header="Online">
+                    
+                </TabItem>
+                <TabItem Header="Updates">
+                    <ListView Name="AvailableUpdatesList">
+
+                    </ListView>
+                </TabItem>
+            </TabControl>
         </Grid>
         
         <Grid Name="BottomBar" Grid.Row="2" MinHeight="50">
