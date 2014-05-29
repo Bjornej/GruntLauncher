@@ -35,13 +35,34 @@ grunt.initConfig=function(param){
 	}
 };
 grunt.file = { 
+	match: function(){return {};},
+	isMatch: function(){return {};},
+	expand: function(){return {};},
+	expandMapping: function(){return {};},
+	mkdir: function(){return {};},
+	recurse: function(){return {};},
+	readYAML: function(){return {};},
+	write: function(){return {};},
+	copy: function(){return {};},
+	exists: function(){return {};},
+	isFile: function(){return {};},
+	isPathAbsolute: function(){return {};},
+	arePathsEquivalent: function(){return {};},
+	doesPathContain: function(){return {};},
+	isPathCwd: function(){return {};},
+	isPathInCwd: function(){return {};},
 	read: function(){return {};},
 	readJSON: function(){return {};}
 }
 grunt.registerTask= function(name){names.push(name);};
 grunt.registerMultiTask= function(name){names.push(name);};
 grunt.loadNpmTasks = function(){};
-grunt.template = {today:function(){}};
+grunt.template = {
+	today:function(){},
+	addDelimiters:function(){},
+	setDelimiters:function(){},
+	process:function(){}
+};
 grunt.renameTask = function(a,b){ names.push(b);}
 grunt.option = function(){};
 
