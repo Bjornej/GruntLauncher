@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using Jurassic;
     using Jurassic.Library;
@@ -20,6 +21,14 @@
         public static ICollection<string> ReadAllTasks(string path)
         {
             var list = new List<string>();
+
+            if (path.EndsWith(".ts")) {
+                path = path.Replace(".ts", ".js").Replace(".coffee",".js");
+            }
+
+            if (!File.Exists(path)) {
+                return list;
+            }
 
             // executes the gruntfile with some little additions :)
             try

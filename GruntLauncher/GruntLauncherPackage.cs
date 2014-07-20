@@ -10,6 +10,8 @@
     using Microsoft.VisualStudio.Shell;
     using EnvDTE80;
     using EnvDTE;
+    using System.Text.RegularExpressions;
+
 
     /// <summary>
     ///     Main class that implements the gruntLauncher packages
@@ -19,6 +21,7 @@
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(GuidList.guidGruntLauncherPkgString)]
     [ProvideAutoLoad("{f1536ef8-92ec-443c-9ed7-fdadf150da82}")]
+    [ProvideOptionPage(typeof(OptionPage), "GruntLauncherSettings", "Settings", 0, 0, true)]
     public sealed class GruntLauncherPackage : Package
     {
         /// <summary>
@@ -156,12 +159,12 @@
             if (isParent)
             {
                 button.Text = "Update Bower Packages";
-                RunProcess(button, " /c \"bower update 2>&1 \" ",true);
+                RunProcess(button, " /c \"bower update 2>&1 \" ", true);
             }
             else if (isChild)
             {
                 string bowerPackage = new DirectoryInfo(path).Name;
-                RunProcess(button, " /c \"bower update " + bowerPackage + " 2>&1 \" ",true);
+                RunProcess(button, " /c \"bower update " + bowerPackage + " 2>&1 \" ", true);
             }
         }
 
@@ -195,7 +198,7 @@
             // gets the full path of the clicked file
             var path = SolutionHelpers.GetSourceFilePath();
 
-            return path.ToLower().IndexOf("gruntfile.js") != -1;
+            return ((path.ToLower().IndexOf("gruntfile.js") != -1) ||(path.ToLower().IndexOf("gruntfile.ts") != -1) || (path.ToLower().IndexOf("gruntfile.coffee") != -1));
         }
 
         private bool IsGulpFile()
@@ -203,7 +206,7 @@
             // gets the full path of the clicked file
             var path = SolutionHelpers.GetSourceFilePath();
 
-            return path.ToLower().IndexOf("gulpfile.js") != -1;
+            return ((path.ToLower().IndexOf("gulpfile.js") != -1)||(path.ToLower().IndexOf("gulpfile.ts") != -1) || (path.ToLower().IndexOf("gulpfile.coffee") != -1));
         }
 
 
@@ -253,15 +256,51 @@
             {
                 this.lastFile = path;
                 var list = GruntParser.ReadAllTasks(path);
+
+                myCommand.Text = "Grunt";
+                myCommand.Enabled = true;
+
+                if (list.Count == 0) {
+                    myCommand.Enabled = false;
+                    myCommand.Text = "Gruntfile.js not found";
+                }
+
                 if (list.Contains("default"))
                 {
                     list.Remove("default");
+                }
+
+                DTE env = (DTE)GetService(typeof(DTE));
+
+                EnvDTE.Properties props = env.get_Properties("GruntLauncherSettings", "Settings");
+
+                string n = (string)props.Item("TaskRegex").Value;
+
+                Regex a = null;
+
+                if (n != null) {
+                    try {
+                        a = new Regex(n);
+                    }
+                    catch (Exception)
+                    {
+                       // invalid regex -> ignore
+                    }
+                    
                 }
 
                 // creates the list of commands
                 int j = 1;
                 foreach (var ele in list)
                 {
+                    if (a != null)
+                    {                       
+                        if (a.Match(ele).Success)
+                        {
+                            continue;
+                        }
+                    }
+
                     CommandID menuCommandID = new CommandID(GuidList.guidGruntLauncherCmdSet, (int)PkgCmdIDList.cmdidGruntLauncher + j);
                     j++;
                     OleMenuCommand command = new OleMenuCommand(this.MenuItemCallback, menuCommandID);
@@ -305,15 +344,55 @@
                 this.lastFile = path;
 
                 var list = GulpParser.ReadAllTasks(path);
+
+                myCommand.Text = "Gulp";
+                myCommand.Enabled = true;
+
+                if (list.Count == 0)
+                {
+                    myCommand.Enabled = false;
+                    myCommand.Text = "Gulpfile.js not found";
+                }
+
                 if (list.Contains("default"))
                 {
                     list.Remove("default");
+                }
+
+                DTE env = (DTE)GetService(typeof(DTE));
+
+                EnvDTE.Properties props = env.get_Properties("GruntLauncherSettings", "Settings");
+
+                string n = (string)props.Item("TaskRegex").Value;
+
+                Regex a = null;
+
+                if (n != null)
+                {
+                    try
+                    {
+                        a = new Regex(n);
+                    }
+                    catch (Exception)
+                    {
+                        // invalid regex -> ignore
+                    }
+
                 }
 
                 // creates the list of commands
                 int j = 1;
                 foreach (var ele in list)
                 {
+                    if (a != null)
+                    {
+                        if (a.Match(ele).Success)
+                        {
+                            continue;
+                        }
+                    }
+
+
                     CommandID menuCommandID = new CommandID(GuidList.guidGruntLauncherCmdSet, (int)PkgCmdIDList.cmdidGulpLauncher + j);
                     j++;
                     OleMenuCommand command = new OleMenuCommand(this.GulpCallback, menuCommandID);
@@ -356,7 +435,7 @@
             if (!cmd.Checked)
             {
                 // launches the grunt process and redirects the output to the output window
-                RunProcess(cmd, " /c \"grunt --no-color " + task + "  2>&1 \" ",false);
+                RunProcess(cmd, " /c \"grunt --no-color " + task + "  2>&1 \" ", false);
             }
             else
             {
@@ -387,7 +466,7 @@
             if (!cmd.Checked)
             {
                 // launches the grunt process and redirects the output to the output window
-                RunProcess(cmd, " /c \"gulp --no-color " + task + "  2>&1 \" ",false);
+                RunProcess(cmd, " /c \"gulp --no-color " + task + "  2>&1 \" ", false);
             }
             else
             {
@@ -408,7 +487,7 @@
                     RedirectStandardError = true,
                     UseShellExecute = false,
                     CreateNoWindow = true,
-                    WorkingDirectory = fromRoot? SolutionHelpers.GetRootFolder(dte) : Path.GetDirectoryName( SolutionHelpers.GetSourceFilePath()),
+                    WorkingDirectory = fromRoot ? SolutionHelpers.GetRootFolder(dte) : Path.GetDirectoryName(SolutionHelpers.GetSourceFilePath()),
                     FileName = "cmd",
                     Arguments = argument,
                 };

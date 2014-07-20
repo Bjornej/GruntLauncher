@@ -139,6 +139,9 @@
     <Compile Include="Helpers\OutputHelpers.cs" />
     <Compile Include="Helpers\SolutionHelpers.cs" />
     <Compile Include="Helpers\ProcessHelpers.cs" />
+    <Compile Include="OptionPage.cs">
+      <SubType>component</SubType>
+    </Compile>
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>

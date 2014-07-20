@@ -22,13 +22,18 @@ gulpFN.watch= function(){
 
 }
 
+
 var require = function(param){
 	if(param==="gulp"){
 		return gulpFN;
 	}else{
-		var f = function(){}
+		var f = function(){};
+		f.task= function(){};
+
 		return f;
 	}
 };
+
+
 
 var __dirname="";
