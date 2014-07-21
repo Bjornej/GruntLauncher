@@ -21,7 +21,7 @@
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(GuidList.guidGruntLauncherPkgString)]
     [ProvideAutoLoad("{f1536ef8-92ec-443c-9ed7-fdadf150da82}")]
-    [ProvideOptionPage(typeof(OptionPage), "GruntLauncherSettings", "Settings", 0, 0, true)]
+    [ProvideOptionPage(typeof(OptionPage), "Grunt Launcher", "General", 0, 0, true)]
     public sealed class GruntLauncherPackage : Package
     {
         /// <summary>
