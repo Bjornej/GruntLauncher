@@ -14,9 +14,9 @@ namespace Bjornej.GruntLauncher
     public class OptionPage : DialogPage
     {
 
-        [Category("General")]
-        [DisplayName("Task regex")]
-        [Description("Regex to use to hide specific tasks from list.")]
+        [Category("Tasks Parser")]
+        [DisplayName("Exclusion")]
+        [Description("Specify a Regex pattern to exclude some unwanted tasks from list.")]
         public string TaskRegex
         {
             get; set;
