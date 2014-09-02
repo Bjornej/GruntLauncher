@@ -49,6 +49,8 @@
         /// </summary>
         private static DTE2 dte;
 
+        private static string exclusionRegex { get; set; }
+
         /// <summary>
         ///     Default constructor of the package.
         ///     Inside this method you can place any initialization code that does not require 
@@ -73,6 +75,12 @@
         {
             base.Initialize();
             dte = GetService(typeof(DTE)) as DTE2;
+
+            DTE env = (DTE)GetService(typeof(DTE));
+
+            EnvDTE.Properties props = env.get_Properties("Grunt Launcher", "General");
+
+            exclusionRegex = (string)props.Item("TaskRegex").Value;
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
             OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
@@ -270,15 +278,11 @@
                     list.Remove("default");
                 }
 
-                DTE env = (DTE)GetService(typeof(DTE));
-
-                EnvDTE.Properties props = env.get_Properties("GruntLauncherSettings", "Settings");
-
-                string n = (string)props.Item("TaskRegex").Value;
+                string n = exclusionRegex;
 
                 Regex a = null;
 
-                if (n != null) {
+                if (!string.IsNullOrEmpty(n)) {
                     try {
                         a = new Regex(n);
                     }
@@ -359,15 +363,11 @@
                     list.Remove("default");
                 }
 
-                DTE env = (DTE)GetService(typeof(DTE));
-
-                EnvDTE.Properties props = env.get_Properties("GruntLauncherSettings", "Settings");
-
-                string n = (string)props.Item("TaskRegex").Value;
+                string n = exclusionRegex;
 
                 Regex a = null;
 
-                if (n != null)
+                if (!string.IsNullOrEmpty(n))
                 {
                     try
                     {
@@ -417,6 +417,7 @@
             var cmd = (OleMenuCommand)sender;
             var text = cmd.Text;
             var task = text.Substring(text.IndexOf(':') + 1).Trim();
+            if (task == "Grunt") { task = ""; }
 
             // if the command is checked it means that there is a running grunt task associated
             // so we kill it
@@ -448,6 +449,8 @@
             var cmd = (OleMenuCommand)sender;
             var text = cmd.Text;
             var task = text.Substring(text.IndexOf(':') + 1).Trim();
+
+            if (task == "Gulp") { task = ""; }
 
             // if the command is checked it means that there is a running grunt task associated
             // so we kill it
