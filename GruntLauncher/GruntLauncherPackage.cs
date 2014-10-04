@@ -11,6 +11,8 @@
     using EnvDTE80;
     using EnvDTE;
     using System.Text.RegularExpressions;
+    using System.Text;
+
 
 
     /// <summary>
@@ -109,7 +111,27 @@
                 OleMenuCommand npm = new OleMenuCommand(this.UpdateNpm, cmdNpm);
                 npm.BeforeQueryStatus += NpmBeforeQueryStatus;
                 mcs.AddCommand(npm);
+
+                CommandID cmdBowerInstall = new CommandID(GuidList.guidGruntLauncherCmdSet, (int)PkgCmdIDList.cmdidBowerInstaller);
+                OleMenuCommand bow = new OleMenuCommand(this.InstallBower, cmdBowerInstall);
+                bow.BeforeQueryStatus += BowerInstallBeforeQueryStatus;
+                mcs.AddCommand(bow);
             }
+        }
+
+        private void BowerInstallBeforeQueryStatus(object sender, EventArgs e)
+        {
+            OleMenuCommand button = (OleMenuCommand)sender;
+            packageFile = SolutionHelpers.GetSourceFilePath();
+            bool isPackage = Path.GetFileName(packageFile).Equals("bower.json", StringComparison.OrdinalIgnoreCase);
+            button.Visible = isPackage;
+        }
+
+        private void InstallBower(object sender, EventArgs e)
+        {
+            OleMenuCommand button = (OleMenuCommand)sender;
+            string rootDir = new DirectoryInfo(packageFile).Name;
+            RunProcess(button, " /c \"bower install 2>&1 \" ", false);
         }
 
         #endregion

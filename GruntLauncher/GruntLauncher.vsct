@@ -133,6 +133,17 @@
         </Strings>
       </Button>
 
+      <Button guid="guidGruntLauncherCmdSet" id="cmdidBowerInstaller" type="Button">
+        <Parent guid="guidGruntLauncherCmdSet" id="MyMenuGroup" />
+        <Icon guid="guidImages" id="bmpPic1" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <CommandName>BowerInstall</CommandName>
+          <ButtonText>Bower install packages</ButtonText>
+        </Strings>
+      </Button>
+    
     </Buttons>
 
     <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
@@ -179,6 +190,7 @@
       <IDSymbol name="MyDynamicMenuGroup" value="0x1040" />
       <IDSymbol name="MyGulpDynamicMenuGroup" value="0x1070" />
       <IDSymbol name="cmdidBowerUpdater" value="0x1050" />
+      <IDSymbol name="cmdidBowerInstaller" value="0x1150" />
       <IDSymbol name="cmdidNpmUpdater" value="0x1090" />
     </GuidSymbol>
 
