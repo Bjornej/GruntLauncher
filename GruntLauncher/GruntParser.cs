@@ -14,8 +14,8 @@
   /// </summary>
   public static class GruntParser
   {
-    private static List<string> list = null;
-    private static bool valid = false;
+    private static List<string> _list = null;
+    private static bool _valid = false;
 
     /// <summary>
     /// Reads all the defined tasks in a Gruntfile whose path is passed as parameter
@@ -24,7 +24,7 @@
     /// <returns>A list of tasks</returns>
     public static ICollection<string> ReadAllTasks(string path)
     {
-      var list = new List<string>();
+      _list = new List<string>();
 
       if (path.EndsWith(".ts"))
       {
@@ -33,20 +33,19 @@
 
       if (!File.Exists(path))
       {
-        return list;
+        return _list;
       }
 
-      valid = false;
       if (!ParseFromScriptEngine(path))
       {
         ParseFromProcess(path);
       }
 
-      if (list.Count == 0)
+      if (_list.Count == 0)
       {
-        list.Add("Cannot parse Gruntfile");
+        _list.Add("Cannot parse Gruntfile");
       }
-      return list.Distinct().ToList();
+      return _list.Distinct().ToList();
     }
 
     /// <summary>
@@ -55,7 +54,6 @@
     private static bool ParseFromScriptEngine(string path)
     {
       // executes the gruntfile with some little additions :)
-      list = new List<string>();
       try
       {
         var engine = new ScriptEngine();
@@ -67,7 +65,7 @@
         ArrayInstance names = (ArrayInstance)engine.Evaluate("names");
         foreach (var elem in names.ElementValues)
         {
-          list.Add(elem.ToString());
+          _list.Add(elem.ToString());
         }
       }
       catch (Exception)
@@ -82,7 +80,7 @@
     /// </summary>
     private static bool ParseFromProcess(string path)
     {
-      list = new List<string>();
+      _valid = false;
       try
       {
         System.Diagnostics.ProcessStartInfo procStartInfo = new ProcessStartInfo()
@@ -93,7 +91,7 @@
           CreateNoWindow = true,
           WorkingDirectory = Path.GetDirectoryName(path),
           FileName = "cmd",
-          Arguments = " /c \"grunt --help \" ",
+          Arguments = " /c \"grunt --help 2>&1\"",
         };
 
         System.Diagnostics.Process proc = new System.Diagnostics.Process()
@@ -120,8 +118,13 @@
     /// </summary>
     private static void OutputHandler(string message)
     {
-      if (message == null)
+      if (String.IsNullOrEmpty(message))
       {
+        if (_valid)
+        {
+          // Stop to read from now on.
+          _valid = false;
+        }
         // Skip null strings.
         return;
       }
@@ -130,20 +133,13 @@
       if (message.StartsWith("[4mAvailable tasks[24m"))
       {
         // Start to read from now on.
-        valid = true;
+        _valid = true;
         return;
       }
 
-      if (!valid || message.EndsWith("*") || message.StartsWith("\""))
+      if (!_valid || message.EndsWith("*") || message.StartsWith("\""))
       {
         // Skip invalid parts and internal tasks of output.
-        return;
-      }
-
-      if (message.Length == 0)
-      {
-        // Stop to read from now on.
-        valid = false;
         return;
       }
 
@@ -151,7 +147,7 @@
       if (index > 0 && index < message.Length)
       {
         // Cut out the task name.
-        list.Add(message.Substring(0, index));
+        _list.Add(message.Substring(0, index));
       }
     }
   }
