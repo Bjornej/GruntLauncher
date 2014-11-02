@@ -89,17 +89,17 @@
             if (null != mcs)
             {
                 // Create the command for the menu item.
-                CommandID menuCommandID = new CommandID(GuidList.guidGruntLauncherCmdSet, (int)PkgCmdIDList.cmdidGruntLauncher);
-                OleMenuCommand command = new OleMenuCommand(this.MenuItemCallback, menuCommandID);
-                command.Visible = false;
-                command.BeforeQueryStatus += this.SetVisibility;
-                baseCommand = command;
-                mcs.AddCommand(command);
+                CommandID cmdGrunt = new CommandID(GuidList.guidGruntLauncherCmdSet, (int)PkgCmdIDList.cmdidGruntLauncher);
+                OleMenuCommand gruntCommand = new OleMenuCommand(this.GruntCallback, cmdGrunt);
+                gruntCommand.Visible = false;
+                gruntCommand.BeforeQueryStatus += GruntBeforeQueryStatus;
+                baseCommand = gruntCommand;
+                mcs.AddCommand(gruntCommand);
 
                 CommandID gulpMenuCommandID = new CommandID(GuidList.guidGruntLauncherCmdSet, (int)PkgCmdIDList.cmdidGulpLauncher);
                 OleMenuCommand gulpCommand = new OleMenuCommand(this.GulpCallback, gulpMenuCommandID);
                 gulpCommand.Visible = false;
-                gulpCommand.BeforeQueryStatus += this.GulpBeforeQueryStatus;
+                gulpCommand.BeforeQueryStatus += GulpBeforeQueryStatus;
                 mcs.AddCommand(gulpCommand);
 
                 CommandID cmdBower = new CommandID(GuidList.guidGruntLauncherCmdSet, (int)PkgCmdIDList.cmdidBowerUpdater);
@@ -200,24 +200,7 @@
 
         #endregion
 
-        /// <summary>
-        ///     Determines if the solution explorer context menu has been opened on a new file since
-        ///     last time
-        /// </summary>
-        /// <returns>Boolean that indicates if a new file was clicked</returns>
-        private bool IsNewFile()
-        {
-            // gets the full path of the clicked file
-            var path = SolutionHelpers.GetSourceFilePath();
-
-            // optimization to avoid parsing the file again if the clicked file has not changed since last time
-            if (path == this.lastFile)
-            {
-                return false;
-            }
-
-            return true;
-        }
+        #region Grunt
 
         /// <summary>
         ///     Determines if the current file is a gruntfile
@@ -231,21 +214,12 @@
             return ((path.ToLower().IndexOf("gruntfile.js") != -1) ||(path.ToLower().IndexOf("gruntfile.ts") != -1) || (path.ToLower().IndexOf("gruntfile.coffee") != -1));
         }
 
-        private bool IsGulpFile()
-        {
-            // gets the full path of the clicked file
-            var path = SolutionHelpers.GetSourceFilePath();
-
-            return ((path.ToLower().IndexOf("gulpfile.js") != -1)||(path.ToLower().IndexOf("gulpfile.ts") != -1) || (path.ToLower().IndexOf("gulpfile.coffee") != -1));
-        }
-
-
         /// <summary>
         /// Sets the visibility of the command and creates the dynamic list of commands
         /// </summary>
         /// <param name="sender">Sender of the event</param>
         /// <param name="e">Event arguments</param>
-        private void SetVisibility(object sender, EventArgs e)
+        private void GruntBeforeQueryStatus(object sender, EventArgs e)
         {
             // gets the full path of the clicked file
             var path = SolutionHelpers.GetSourceFilePath();
@@ -329,13 +303,64 @@
 
                     CommandID menuCommandID = new CommandID(GuidList.guidGruntLauncherCmdSet, (int)PkgCmdIDList.cmdidGruntLauncher + j);
                     j++;
-                    OleMenuCommand command = new OleMenuCommand(this.MenuItemCallback, menuCommandID);
+                    OleMenuCommand command = new OleMenuCommand(this.GruntCallback, menuCommandID);
                     command.Text = "Grunt: " + ele;
                     command.BeforeQueryStatus += (x, y) => { (x as OleMenuCommand).Visible = true; };
                     commands.Add(command);
                     mcs.AddCommand(command);
                 }
             }
+        }
+
+        /// <summary>
+        /// This function is the callback used to execute a command when the a menu item is clicked.
+        /// See the Initialize method to see how the menu item is associated to this function using
+        /// the OleMenuCommandService service and the MenuCommand class.
+        /// </summary>
+        /// <param name="sender">Sender of the event</param>
+        /// <param name="e">Event arguments</param>
+        private void GruntCallback(object sender, EventArgs e)
+        {
+          var cmd = (OleMenuCommand)sender;
+          var text = cmd.Text;
+          var task = text.Substring(text.IndexOf(':') + 1).Trim();
+          if (task == "Grunt") { task = ""; }
+
+          // if the command is checked it means that there is a running grunt task associated
+          // so we kill it
+          if (cmd.Checked)
+          {
+            System.Diagnostics.Process pro;
+            processes.TryGetValue(cmd, out pro);
+            if (pro != null)
+            {
+              OutputHelpers.Output("Stopping process " + cmd.Text);
+              ProcessHelpers.KillProcessAndChildren(pro.Id);
+              processes.Remove(cmd);
+            }
+          }
+
+          if (!cmd.Checked)
+          {
+            // launches the grunt process and redirects the output to the output window
+            RunProcess(cmd, " /c \"grunt --no-color " + task + "  2>&1 \" ", false);
+          }
+          else
+          {
+            cmd.Checked = false;
+          }
+        }
+
+        #endregion
+
+        #region Gulp
+
+        private bool IsGulpFile()
+        {
+          // gets the full path of the clicked file
+          var path = SolutionHelpers.GetSourceFilePath();
+
+          return ((path.ToLower().IndexOf("gulpfile.js") != -1) || (path.ToLower().IndexOf("gulpfile.ts") != -1) || (path.ToLower().IndexOf("gulpfile.coffee") != -1));
         }
 
         private void GulpBeforeQueryStatus(object sender, EventArgs e)
@@ -427,45 +452,6 @@
         }
 
 
-        /// <summary>
-        /// This function is the callback used to execute a command when the a menu item is clicked.
-        /// See the Initialize method to see how the menu item is associated to this function using
-        /// the OleMenuCommandService service and the MenuCommand class.
-        /// </summary>
-        /// <param name="sender">Sender of the event</param>
-        /// <param name="e">Event arguments</param>
-        private void MenuItemCallback(object sender, EventArgs e)
-        {
-            var cmd = (OleMenuCommand)sender;
-            var text = cmd.Text;
-            var task = text.Substring(text.IndexOf(':') + 1).Trim();
-            if (task == "Grunt") { task = ""; }
-
-            // if the command is checked it means that there is a running grunt task associated
-            // so we kill it
-            if (cmd.Checked)
-            {
-                System.Diagnostics.Process pro;
-                processes.TryGetValue(cmd, out pro);
-                if (pro != null)
-                {
-                    OutputHelpers.Output("Stopping process " + cmd.Text);
-                    ProcessHelpers.KillProcessAndChildren(pro.Id);
-                    processes.Remove(cmd);
-                }
-            }
-
-            if (!cmd.Checked)
-            {
-                // launches the grunt process and redirects the output to the output window
-                RunProcess(cmd, " /c \"grunt --no-color " + task + "  2>&1 \" ", false);
-            }
-            else
-            {
-                cmd.Checked = false;
-            }
-        }
-
         private void GulpCallback(object sender, EventArgs e)
         {
             var cmd = (OleMenuCommand)sender;
@@ -499,6 +485,26 @@
             }
         }
 
+        #endregion
+
+        /// <summary>
+        ///     Determines if the solution explorer context menu has been opened on a new file since
+        ///     last time
+        /// </summary>
+        /// <returns>Boolean that indicates if a new file was clicked</returns>
+        private bool IsNewFile()
+        {
+          // gets the full path of the clicked file
+          var path = SolutionHelpers.GetSourceFilePath();
+
+          // optimization to avoid parsing the file again if the clicked file has not changed since last time
+          if (path == this.lastFile)
+          {
+            return false;
+          }
+
+          return true;
+        }
 
         private static void RunProcess(OleMenuCommand cmd, string argument, bool fromRoot)
         {
