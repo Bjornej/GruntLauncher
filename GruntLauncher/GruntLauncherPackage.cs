@@ -12,8 +12,7 @@
     using EnvDTE;
     using System.Text.RegularExpressions;
     using System.Text;
-
-
+    
 
     /// <summary>
     ///     Main class that implements the gruntLauncher packages
@@ -53,6 +52,7 @@
 
         private static string exclusionRegex { get; set; }
 
+
         /// <summary>
         ///     Default constructor of the package.
         ///     Inside this method you can place any initialization code that does not require 
@@ -79,6 +79,8 @@
             dte = GetService(typeof(DTE)) as DTE2;
 
             DTE env = (DTE)GetService(typeof(DTE));
+
+            env.Events.BuildEvents.OnBuildBegin += OnOnBuildBegin;
 
             EnvDTE.Properties props = env.get_Properties("Grunt Launcher", "General");
 
@@ -117,6 +119,14 @@
                 bow.BeforeQueryStatus += BowerInstallBeforeQueryStatus;
                 mcs.AddCommand(bow);
             }
+        }
+
+        private void OnOnBuildBegin(vsBuildScope scope, vsBuildAction action)
+        {
+            foreach (var process in processes)
+                ProcessHelpers.KillProcessAndChildren(process.Value.Id);
+
+            processes = new Dictionary<OleMenuCommand, System.Diagnostics.Process>();
         }
 
         private void BowerInstallBeforeQueryStatus(object sender, EventArgs e)
