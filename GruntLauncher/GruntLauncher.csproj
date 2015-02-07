@@ -191,14 +191,16 @@
     <None Include="Resources\Images.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Init.txt" />
-    <None Include="Resources\gulpInit.txt" />
-    <Content Include="LICENSE.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <Content Include="..\LICENSE.txt">
+      <Link>Resources\LICENSE.txt</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="Resources\grunt-logo.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <Content Include="Resources\preview.png">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <None Include="Resources\Init.txt" />
+    <None Include="Resources\gulpInit.txt" />
+    <Content Include="Resources\icon.png">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Resources\Package.ico" />

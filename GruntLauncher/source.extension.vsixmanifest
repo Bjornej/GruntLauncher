@@ -5,17 +5,16 @@
     <DisplayName>Grunt Launcher</DisplayName>
     <Description xml:space="preserve">Right click extension to launch Grunt, Gulp and Bower commands in Visual Studio.</Description>
     <MoreInfo>https://github.com/Bjornej/GruntLauncher</MoreInfo>
-    <License>LICENSE.txt</License>
+    <License>Resources\LICENSE.txt</License>
     <ReleaseNotes>https://github.com/Bjornej/GruntLauncher/releases</ReleaseNotes>
-    <Icon>Resources\grunt-logo.png</Icon>
+    <Icon>Resources\icon.png</Icon>
+    <PreviewImage>Resources\preview.png</PreviewImage>
     <Tags>grunt, gulp, bower, npm</Tags>
   </Metadata>
   <Installation InstalledByMsi="false">
-    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[11.0,12.0]" />
+    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[11.0,14.0]" />
   </Installation>
   <Dependencies>
-    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="4.5" />
-    <Dependency Id="Microsoft.VisualStudio.MPF.11.0" DisplayName="Visual Studio MPF 11.0" d:Source="Installed" Version="11.0" />
   </Dependencies>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
