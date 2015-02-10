@@ -1,4 +1,6 @@
-### GruntLauncher ###
+### GruntLauncher
+
+[![Build status](https://ci.appveyor.com/api/projects/status/objiqfvmt0wlxed4/branch/master?svg=true)](https://ci.appveyor.com/project/Bjornej/gruntlauncher/branch/master)
 
 Originally a plugin made to launch grunt taasks from inside Visual studio by right-clicking your gruntfile in the solution explorer it has now been extended with new functionality:
 
