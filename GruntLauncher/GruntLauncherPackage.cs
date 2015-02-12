@@ -12,8 +12,7 @@
     using EnvDTE;
     using System.Text.RegularExpressions;
     using System.Text;
-
-
+    
 
     /// <summary>
     ///     Main class that implements the gruntLauncher packages
@@ -50,8 +49,15 @@
         /// The DTE object of Visual Studio
         /// </summary>
         private static DTE2 dte;
-
-        private static string exclusionRegex { get; set; }
+        
+        /// <summary>
+        /// Returns the instance of the OptionPage.
+        /// </summary>
+        private OptionPage Options
+        {
+            get { return (OptionPage) GetDialogPage(typeof (OptionPage)); }
+        }
+        
 
         /// <summary>
         ///     Default constructor of the package.
@@ -80,9 +86,8 @@
 
             DTE env = (DTE)GetService(typeof(DTE));
 
-            EnvDTE.Properties props = env.get_Properties("Grunt Launcher", "General");
+            env.Events.BuildEvents.OnBuildBegin += OnOnBuildBegin;
 
-            exclusionRegex = (string)props.Item("TaskRegex").Value;
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
             OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
@@ -117,6 +122,17 @@
                 bow.BeforeQueryStatus += BowerInstallBeforeQueryStatus;
                 mcs.AddCommand(bow);
             }
+        }
+
+        private void OnOnBuildBegin(vsBuildScope scope, vsBuildAction action)
+        {
+            if (!Options.StopProcessesOnBuild)
+                return;
+
+            foreach (var process in processes)
+                ProcessHelpers.KillProcessAndChildren(process.Value.Id);
+
+            processes = new Dictionary<OleMenuCommand, System.Diagnostics.Process>();
         }
 
         private void BowerInstallBeforeQueryStatus(object sender, EventArgs e)
@@ -274,7 +290,7 @@
                     list.Remove("default");
                 }
 
-                string n = exclusionRegex;
+                string n = Options.TaskRegex;
 
                 Regex a = null;
 
@@ -410,7 +426,7 @@
                     list.Remove("default");
                 }
 
-                string n = exclusionRegex;
+                string n = Options.TaskRegex;
 
                 Regex a = null;
 
