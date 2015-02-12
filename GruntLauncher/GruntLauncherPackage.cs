@@ -49,9 +49,15 @@
         /// The DTE object of Visual Studio
         /// </summary>
         private static DTE2 dte;
-
-        private static string exclusionRegex { get; set; }
-
+        
+        /// <summary>
+        /// Returns the instance of the OptionPage.
+        /// </summary>
+        private OptionPage Options
+        {
+            get { return (OptionPage) GetDialogPage(typeof (OptionPage)); }
+        }
+        
 
         /// <summary>
         ///     Default constructor of the package.
@@ -82,9 +88,6 @@
 
             env.Events.BuildEvents.OnBuildBegin += OnOnBuildBegin;
 
-            EnvDTE.Properties props = env.get_Properties("Grunt Launcher", "General");
-
-            exclusionRegex = (string)props.Item("TaskRegex").Value;
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
             OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
@@ -123,6 +126,9 @@
 
         private void OnOnBuildBegin(vsBuildScope scope, vsBuildAction action)
         {
+            if (!Options.StopProcessesOnBuild)
+                return;
+
             foreach (var process in processes)
                 ProcessHelpers.KillProcessAndChildren(process.Value.Id);
 
@@ -284,7 +290,7 @@
                     list.Remove("default");
                 }
 
-                string n = exclusionRegex;
+                string n = Options.TaskRegex;
 
                 Regex a = null;
 
@@ -420,7 +426,7 @@
                     list.Remove("default");
                 }
 
-                string n = exclusionRegex;
+                string n = Options.TaskRegex;
 
                 Regex a = null;
 
