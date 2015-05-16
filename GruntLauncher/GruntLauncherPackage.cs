@@ -557,7 +557,7 @@
                     processes.Remove(cmd);
                     cmd.Checked = false;
                     dte.StatusBar.Animate(false, vsStatusAnimation.vsStatusAnimationBuild);
-                    OutputHelpers.Output("Execeution of " + command + " completed.\r\n\r\n", true);
+                    OutputHelpers.Output("Execution of " + command + " completed.\r\n\r\n", true);
                 };
 
                 proc.Start();
