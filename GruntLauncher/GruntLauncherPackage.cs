@@ -547,7 +547,8 @@
                     EnableRaisingEvents = true
                 };
 
-                OutputHelpers.Output("Executing " + cmd.Text + " \r\n\r\n", true);
+                string command = cmd.Text;
+                OutputHelpers.Output("Executing " + command + " \r\n\r\n", true);
 
                 proc.OutputDataReceived += (object sendingProcess, DataReceivedEventArgs outLine) => OutputHelpers.Output(outLine.Data + "\r\n");
                 proc.ErrorDataReceived += (object sendingProcess, DataReceivedEventArgs outLine) => OutputHelpers.Output(outLine.Data + "\r\n");
@@ -556,6 +557,7 @@
                     processes.Remove(cmd);
                     cmd.Checked = false;
                     dte.StatusBar.Animate(false, vsStatusAnimation.vsStatusAnimationBuild);
+                    OutputHelpers.Output("Execution of " + command + " completed.\r\n\r\n", true);
                 };
 
                 proc.Start();
